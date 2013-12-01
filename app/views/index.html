@@ -1,12 +1,33 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <link rel="shortcut icon" type="image/ico" href="favicon.ico">
-    <script src="js/socket.io.js"></script>
-    <script src="js/clientApp.js"></script>
-    <title>full js stack</title>
-</head>
-<body>
-    TEST
-</body>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="full js stack test application. Just test purpose">
+        <meta name="author" content="miro.rucka">
+
+        <link href="css/bootstrap.css" rel="stylesheet">
+        <link href="css/bootstrap-responsive.css" rel="stylesheet">
+        <link href="css/docs.css" rel="stylesheet">
+        <link href="css/custom.css" rel="stylesheet">
+
+        <link rel="shortcut icon" type="image/ico" href="favicon.ico">
+
+        <title>chat v0.1</title>
+    </head>
+    <body data-spy="scroll" data-target=".bs-docs-sidebar">
+
+        <div class="container custom">
+            <form>
+                <fieldset>
+                    <legend>Chat</legend>
+                    <textarea rows="3" placeholder="Type something…" class="custom"></textarea>
+                    <button type="submit" class="btn btn-success btn-block">Submit</button>
+                </fieldset>
+            </form>
+        </div>
+
+        <script src="js/socket.io.js"></script>
+        <script src="js/clientApp.js"></script>
+    </body>
 </html>
