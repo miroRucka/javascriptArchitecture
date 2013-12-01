@@ -4,7 +4,43 @@ var config = require('./config');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
+
 server.listen(config.port);
+
+var dbOperation = (function () {
+
+    var chatSchema = mongoose.Schema({
+        username:String,
+        message:String,
+        timestamp: Date
+    });
+
+    var Chat = mongoose.model('Chat', chatSchema);
+
+    var _connect = function () {
+        return mongoose.connect(config.dbUrl);
+    };
+
+    var _saveMessage = function(msg){
+        new Chat({username:'Admin', message: msg, timestamp: new Date()}).save(function (err, chat) {});
+    };
+
+    var _findAll = function(cb, err){
+        Chat.find(function (err, chats) {
+            cb(chats);
+        });
+    };
+
+    return {
+        connect: _connect,
+        save: _saveMessage,
+        findAll: _findAll
+    }
+})();
+var db = dbOperation.connect();
+dbOperation.findAll(function(d){
+    console.log(d);
+});
 
 /**
  * configure express server
@@ -25,31 +61,11 @@ app.get('/', function (req, res) {
     res.render('index.html');
 });
 
-/**
- * configure socket.io
- */
 io.sockets.on('connection', function (socket) {
     socket.emit('news', { hello:'world' });
-    socket.on('my other event', function (data) {
-        console.log(data);
+    socket.on('postMessage', function (data) {
+        console.log(data.message);
+        dbOperation.save(data.message);
+        io.sockets.emit('receiveMessage', {foo:"test.. "});
     });
 });
-
-var db = mongoose.connect('mongodb://localhost/chat');
-
-var chatSchema = mongoose.Schema({
-    username:String,
-    message:String
-})
-
-
-var Chat = mongoose.model('Chat', chatSchema);
-
-new Chat({username:'webstorm', message:'hi from nodejs!'}).save(function (err, chat) {
-
-});
-
-Chat.find(function (err, chats) {
-    console.info(chats);
-});
-

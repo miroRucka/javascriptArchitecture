@@ -1,7 +1,12 @@
 (function(w){
-    var socket = io.connect('http://localhost');
-    socket.on('news', function (data) {
+    var socket = io.connect('/');
+    socket.on('receiveMessage', function (data) {
         console.log(data);
-        socket.emit('my other event', { my: 'data' });
+    });
+    $('#chatForm').submit(function(e){
+        var editor = $(e.target).find('textarea');
+        socket.emit('postMessage', { message: editor.val() });
+        editor.val('');
+        e.preventDefault();
     });
 })(window);

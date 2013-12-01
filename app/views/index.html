@@ -18,16 +18,26 @@
     <body data-spy="scroll" data-target=".bs-docs-sidebar">
 
         <div class="container custom">
-            <form>
+            <form id="chatForm" action="/submit" method="post">
                 <fieldset>
                     <legend>Chat</legend>
                     <textarea rows="3" placeholder="Type something…" class="custom"></textarea>
                     <button type="submit" class="btn btn-success btn-block">Submit</button>
                 </fieldset>
             </form>
+
+            <div class="well well-small custom">
+                <span class="label label-info">10:23:45</span>&nbsp;Napriek všeobecnému presvedčeniu nie je Lorem Ipsum len náhodný text. Jeho korene sú v časti klasickej latinskej literatúry z roku 45 pred n.l., takže má viac ako 2000 rokov. Richard McClintock, profesor latinčiny na Hampden-Sydney College vo Virgínii, hľadal jedno z menej určitých latinských slov, consectetur, z pasáže Lorem Ipsum, a ako vyhľadával výskyt tohto slova v klasickej literatúre, objavil jeho nepochybný zdroj. Lorem Ipsum pochádza z odsekov 1.10.32 a 1.10.33 Cicerovho diela "De finibus bonorum et malorum" (O najvyššom dobre a zle), napísaného v roku 45 pred n.l. Táto kniha je pojednaním o teórii etiky, a bola veľmi populárna v renesancii. Prvý riadok Lorem Ipsum, "Lorem ipsum dolor sit amet..", je z riadku v odseku 1.10.32.
+
+                Štandardný úsek Lorem Ipsum, používaný od 16. storočia, je pre zaujímavosť uvedený nižšie. Odseky 1.10.32 a 1.10.33 z "De finibus bonorum et malorum" od Cicera tu sú tiež uvedené v ich presnom pôvodnom tvare, doplnené anglickými verziami z roku 1914, v preklade H. Rackhama.
+            </div>
+            <div class="well well-small custom">
+                test
+            </div>
         </div>
 
         <script src="js/socket.io.js"></script>
+        <script src="js/jquery-2.0.3.js"></script>
         <script src="js/clientApp.js"></script>
     </body>
 </html>
