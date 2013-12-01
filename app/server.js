@@ -6,7 +6,8 @@ server.listen(80);
 
 app.configure(function () {
     app.use(express.logger('dev'));
-    app.use('/js', express.static(__dirname + '/static'));
+    app.use('/js', express.static(__dirname + '/static/js'));
+    app.use('/css', express.static(__dirname + '/static/css'));
     app.set('views',__dirname + '/views');
     app.use(app.router);
     app.engine('html', require('ejs').renderFile);
