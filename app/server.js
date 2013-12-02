@@ -38,9 +38,7 @@ var dbOperation = (function () {
     }
 })();
 var db = dbOperation.connect();
-dbOperation.findAll(function(d){
-    console.log(d);
-});
+
 
 /**
  * configure express server
@@ -48,6 +46,7 @@ dbOperation.findAll(function(d){
 app.use(express.logger('dev'));
 app.use('/js', express.static(__dirname + '/static/js'));
 app.use('/css', express.static(__dirname + '/static/css'));
+app.use('/template', express.static(__dirname + '/views/template'));
 app.use(express.favicon(__dirname + '/static/images/favicon.ico'));
 app.set('views', __dirname + '/views');
 app.use(app.router);
@@ -59,6 +58,13 @@ app.engine('html', require('ejs').renderFile);
  */
 app.get('/', function (req, res) {
     res.render('index.html');
+});
+
+app.get('/api/messages/', function (req, res) {
+    dbOperation.findAll(function(data){
+        res.json(data);
+    });
+
 });
 
 io.sockets.on('connection', function (socket) {
