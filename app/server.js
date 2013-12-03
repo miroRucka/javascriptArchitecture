@@ -22,7 +22,7 @@ var dbOperation = (function () {
     };
 
     var _saveMessage = function(msg){
-        new Chat({username:'Admin', message: msg, timestamp: new Date()}).save(function (err, chat) {});
+        new Chat(msg).save(function (err, chat) {});
     };
 
     var _findAll = function(cb, err){
@@ -70,8 +70,8 @@ app.get('/api/messages/', function (req, res) {
 io.sockets.on('connection', function (socket) {
     socket.emit('news', { hello:'world' });
     socket.on('postMessage', function (data) {
-        console.log(data.message);
-        dbOperation.save(data.message);
-        io.sockets.emit('receiveMessage', {foo:"test.. "});
+        var msg = {username:'Admin', message: data.message, timestamp: new Date()};
+        dbOperation.save(msg);
+        io.sockets.emit('receiveMessage', msg);
     });
 });
