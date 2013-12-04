@@ -6,6 +6,16 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
     return {
         restrict:'E,A',
         scope:{},
+        link:function (scope, element) {
+            element.find('textarea').bind('keydown', function (e) {
+                if (e.keyCode == 13) {
+                    e.preventDefault();
+                    if (!_.isEmpty(scope.message)) {
+                        scope.submit();
+                    }
+                }
+            });
+        },
         controller:function ($scope) {
             console.log('editor');
             $scope.message;
@@ -53,11 +63,11 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
         $scope.messages = messages.data;
     };
     dataService.getMessages().then(ok);
-    dataService.getNewMessage(function(data){
+    dataService.getNewMessage(function (data) {
         $scope.messages.push(data);
         $scope.safeApply();
     });
-    $scope.safeApply = function(fn) {
+    $scope.safeApply = function (fn) {
         var phase = this.$root.$$phase;
         if (phase == '$apply' || phase == '$digest') {
             if (fn && ( typeof (fn) === 'function')) {
@@ -69,11 +79,11 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
     };
 });
 
-angular.module('chat.editor.module').filter('message', function() {
-    return function(items) {
-        if(!_.isUndefined(items) && _.isArray(items)){
-            return items.slice().reverse().slice(0,10);
-        }else{
+angular.module('chat.editor.module').filter('message', function () {
+    return function (items) {
+        if (!_.isUndefined(items) && _.isArray(items)) {
+            return items.slice().reverse().slice(0, 10);
+        } else {
             return items;
         }
 
