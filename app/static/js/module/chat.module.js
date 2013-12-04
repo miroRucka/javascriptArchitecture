@@ -68,3 +68,14 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
         }
     };
 });
+
+angular.module('chat.editor.module').filter('message', function() {
+    return function(items) {
+        if(!_.isUndefined(items) && _.isArray(items)){
+            return items.slice().reverse().slice(0,10);
+        }else{
+            return items;
+        }
+
+    };
+});

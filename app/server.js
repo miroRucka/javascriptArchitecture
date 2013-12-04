@@ -37,6 +37,7 @@ var dbOperation = (function () {
         findAll: _findAll
     }
 })();
+
 var db = dbOperation.connect();
 
 
