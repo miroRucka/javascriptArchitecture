@@ -4,10 +4,22 @@ var config = require('./config');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
-var passport = require("passport");
+var passport = require('passport');
+var bcrypt = require('bcrypt-nodejs');
+var _ = require('underscore');
 var LocalStrategy = require('passport-local').Strategy;
+var SALT_WORK_FACTOR = 10;
 
 server.listen(config.port);
+
+var utils = (function () {
+    var _exists = function (input) {
+        return !_.isUndefined(input) && !_.isNull(input);
+    };
+    return {
+        exists: _exists
+    };
+})();
 
 var dbOperation = (function () {
 
@@ -20,12 +32,42 @@ var dbOperation = (function () {
     var Chat = mongoose.model('Chat', chatSchema);
 
     var localUserSchema = mongoose.Schema({
-        username: String,
-        salt: String,
-        hash: String
+        username: { type: String, required: true, index: { unique: true } },
+        //actually it is the hash
+        password: { type: String, required: true }
     });
 
-    var Users = mongoose.model('Userauths', localUserSchema);
+    localUserSchema.pre('save', function (next) {
+        var user = this;
+        // only hash the password if it has been modified (or is new)
+        if (!user.isModified('password')) return next();
+        // generate a salt
+        bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
+            if (utils.exists(err)) {
+                return next(err);
+            }
+            // hash the password along with our new salt
+            bcrypt.hash(user.password, salt, undefined, function (err, hash) {
+                if (utils.exists(err)) {
+                    return next(err);
+                }
+                // override the cleartext password with the hashed one
+                user.password = hash;
+                next();
+            });
+        });
+    });
+
+    localUserSchema.methods.comparePassword = function (candidatePassword, cb) {
+        bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
+            if (utils.exists(err)) {
+                return cb(err);
+            }
+            cb(null, isMatch);
+        });
+    };
+
+    var Users = mongoose.model('Users', localUserSchema);
 
     var _connect = function () {
         return mongoose.connect(config.dbUrl);
@@ -45,6 +87,8 @@ var dbOperation = (function () {
     var _findUser = function (username, cb) {
         Users.findOne({ username: username}, function (err, user) {
             cb(err, user);
+            console.log(err);
+            console.log(user);
         });
     };
 
@@ -54,17 +98,24 @@ var dbOperation = (function () {
         });
     };
 
+    var _saveUser = function (user) {
+        new Users(user).save(function (err, user) {
+            console.log(user)
+            console.log(err);
+        });
+    };
+
     return {
         connect: _connect,
         save: _saveMessage,
         findAll: _findAll,
         findUser: _findUser,
-        findUserById: _findUserById
+        findUserById: _findUserById,
+        saveUser: _saveUser
     }
 })();
 
 var db = dbOperation.connect();
-
 
 /**
  * configure express server
@@ -90,21 +141,21 @@ app.engine('html', require('ejs').renderFile);
 
 passport.use(new LocalStrategy({ usernameField: 'user', passwordField: 'password' }, function (username, password, done) {
     dbOperation.findUser(username, function (err, user) {
-        if (!err) {
+        if (utils.exists(err)) {
             return done(err);
         }
-        if (!user) {
+        if (!utils.exists(user)) {
             return done(null, false, { message: 'Incorrect username.' });
         }
-
-        hash(password, user.salt, function (err, hash) {
-            if (err) {
-                return done(err);
+        user.comparePassword(password, function (err, isMatch) {
+            if (utils.exists(err) || !Boolean(isMatch)) {
+                done(null, false, { message: 'Incorrect password.' });
+            } else {
+                done(null, user);
             }
-            if (hash == user.hash) return done(null, user);
-            done(null, false, { message: 'Incorrect password.' });
+
         });
-    })
+    });
 }));
 
 passport.serializeUser(function (user, done) {
@@ -139,18 +190,9 @@ app.get('/api/messages/', function (req, res) {
 
 });
 
-app.post('/login', function (req, res, next) {
-    passport.authenticate('local', function (err, user, info) {
-        if (err) {
-            return next(err); // will generate a 500 error
-        }
-        // Generate a JSON response reflecting authentication status
-        if (!user) {
-            return res.send({ success: false, message: 'authentication failed' });
-        }
-        return res.send({ success: true, message: 'authentication succeeded' });
-    })(req, res, next);
-});
+app.post('/login', passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login'}));
 
 app.get('/login', function (req, res) {
     // render login file

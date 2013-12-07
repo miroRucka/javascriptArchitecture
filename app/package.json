@@ -1,20 +1,24 @@
 {
-  "name": "javascriptArchitecture",
-  "description": "test project with AngularJS node.js and mongoDB",
-  "author": "Miroslav Rúčka",
-  "version": "0.0.1",
-  "dependencies": {
-    "express": "3.4.5",
-    "mongoose": "3.8.1",
-    "socket.io": "0.9.16",
-    "ejs": "0.8.5",
-    "passport": "0.1.17",
-    "passport-local": "0.1.6"
-  },
-  "devDependencies": {
-    "vows": "0.5.x",
-	"mocha": "*",
-	"should": "*"
-  },
-  "engine": "node >= 0.6.6"
+    "name": "javascriptArchitecture",
+    "description": "test project with AngularJS node.js and mongoDB",
+    "author": "Miroslav Rúčka",
+    "version": "0.0.1",
+    "dependencies": {
+        "express": "3.4.5",
+        "mongoose": "3.8.1",
+        "socket.io": "0.9.16",
+        "ejs": "0.8.5",
+        "passport": "0.1.17",
+        "passport-local": "0.1.6",
+        "bcrypt-nodejs": "0.0.3"
+    },
+    "devDependencies": {
+        "vows": "0.5.x",
+        "mocha": "*",
+        "should": "*"
+    },
+    "keywords": [
+        "chat"
+    ],
+    "engine": "node >= 0.6.6"
 }
