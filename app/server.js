@@ -12,17 +12,17 @@ server.listen(config.port);
 var dbOperation = (function () {
 
     var chatSchema = mongoose.Schema({
-        username:String,
-        message:String,
-        timestamp:Date
+        username: String,
+        message: String,
+        timestamp: Date
     });
 
     var Chat = mongoose.model('Chat', chatSchema);
 
     var localUserSchema = mongoose.Schema({
-        username:String,
-        salt:String,
-        hash:String
+        username: String,
+        salt: String,
+        hash: String
     });
 
     var Users = mongoose.model('Userauths', localUserSchema);
@@ -43,7 +43,7 @@ var dbOperation = (function () {
     };
 
     var _findUser = function (username, cb) {
-        Users.findOne({ username:username}, function (err, user) {
+        Users.findOne({ username: username}, function (err, user) {
             cb(err, user);
         });
     };
@@ -55,11 +55,11 @@ var dbOperation = (function () {
     };
 
     return {
-        connect:_connect,
-        save:_saveMessage,
-        findAll:_findAll,
-        findUser:_findUser,
-        findUserById:_findUserById
+        connect: _connect,
+        save: _saveMessage,
+        findAll: _findAll,
+        findUser: _findUser,
+        findUserById: _findUserById
     }
 })();
 
@@ -73,7 +73,7 @@ app.use(express.logger('dev'));
 app.use(express.cookieParser());
 app.use(express.urlencoded())
 app.use(express.json())
-app.use(express.session({ secret:'SECRET' }));
+app.use(express.session({ secret: 'SECRET' }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/js', express.static(__dirname + '/static/js'));
@@ -94,7 +94,7 @@ passport.use(new LocalStrategy({ usernameField: 'user', passwordField: 'password
             return done(err);
         }
         if (!user) {
-            return done(null, false, { message:'Incorrect username.' });
+            return done(null, false, { message: 'Incorrect username.' });
         }
 
         hash(password, user.salt, function (err, hash) {
@@ -102,7 +102,7 @@ passport.use(new LocalStrategy({ usernameField: 'user', passwordField: 'password
                 return done(err);
             }
             if (hash == user.hash) return done(null, user);
-            done(null, false, { message:'Incorrect password.' });
+            done(null, false, { message: 'Incorrect password.' });
         });
     })
 }));
@@ -139,26 +139,27 @@ app.get('/api/messages/', function (req, res) {
 
 });
 
-app.post('/login', function(req, res, next) {
-    passport.authenticate('local', function(err, user, info) {
+app.post('/login', function (req, res, next) {
+    passport.authenticate('local', function (err, user, info) {
         if (err) {
             return next(err); // will generate a 500 error
         }
         // Generate a JSON response reflecting authentication status
-        if (! user) {
-            return res.send({ success : false, message : 'authentication failed' });
+        if (!user) {
+            return res.send({ success: false, message: 'authentication failed' });
         }
-        return res.send({ success : true, message : 'authentication succeeded' });
+        return res.send({ success: true, message: 'authentication succeeded' });
     })(req, res, next);
 });
 
 app.get('/login', function (req, res) {
+    // render login file
     res.render('login.html');
 });
 
 io.sockets.on('connection', function (socket) {
     socket.on('postMessage', function (data) {
-        var msg = {username:'Admin', message:data.message, timestamp:new Date()};
+        var msg = {username: 'Admin', message: data.message, timestamp: new Date()};
         dbOperation.save(msg);
         io.sockets.emit('receiveMessage', msg);
     });
