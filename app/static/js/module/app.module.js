@@ -5,6 +5,7 @@ chatApp.run(function () {
 
 /**
  * configures application routes
+ * test new ssh
  */
 chatApp.config(['$routeProvider',
     function ($routeProvider) {
