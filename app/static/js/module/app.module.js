@@ -1,25 +1,18 @@
-var chatApp = angular.module('chat-app', ['ngRoute', 'data.service', 'chat.editor.module', 'chat.messages.module']);
-chatApp.run(function () {
-    console.log('start apllication');
-});
+var chatApp = angular.module('chat-app', ['ngAnimate', 'ngRoute', 'data.service', 'chat.editor.module', 'chat.messages.module']);
+
 
 /**
  * configures application routes
- * test new ssh
  */
 chatApp.config(['$routeProvider',
     function ($routeProvider) {
         $routeProvider.
-            when('/phones', {
-                templateUrl: 'partials/phone-list.html',
-                controller: 'PhoneListCtrl'
-            }).
-            when('/phones/:phoneId', {
-                templateUrl: 'partials/phone-detail.html',
-                controller: 'PhoneDetailCtrl'
+            when('/', {
+                controller: 'MainChatCtrl',
+                templateUrl: '/template/chatTmpl.html'
             }).
             otherwise({
-                redirectTo: '/phones'
+                redirectTo: '/'
             });
     }]);
 

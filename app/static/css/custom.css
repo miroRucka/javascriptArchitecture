@@ -10,8 +10,10 @@ textarea.custom {
     width: 392px;
 }
 
-.animate-enter,
-.animate-leave {
+
+
+.animate.ng-enter,
+.animate.ng-leave {
     -webkit-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
     -moz-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
     -ms-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
@@ -21,8 +23,8 @@ textarea.custom {
     display: block;
 }
 
-.animate-leave.animate-leave-active,
-.animate-enter {
+.animate.ng-leave.animate.ng-leave-active,
+.animate.ng-enter {
     -webkit-transform: rotateX(90deg) rotateZ(90deg);
     -moz-transform: rotateX(90deg) rotateZ(90deg);
     -ms-transform: rotateX(90deg) rotateZ(90deg);
@@ -32,8 +34,8 @@ textarea.custom {
     height: 0px;
 }
 
-.animate-enter.animate-enter-active,
-.animate-leave {
+.animate.ng-enter.animate.ng-enter-active,
+.animate.ng-leave {
     -webkit-transform: rotateX(0deg) rotateZ(0deg);
     -moz-transform: rotateX(0deg) rotateZ(0deg);
     -ms-transform: rotateX(0deg) rotateZ(0deg);

@@ -186,9 +186,7 @@ function auth(req, res, next) {
  * serve root
  */
 app.get('/', function (req, res) {
-    auth(req, res, function(){
-        res.render('index.html');
-    });
+    res.render('index.html');
 });
 
 /**

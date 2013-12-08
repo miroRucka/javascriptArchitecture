@@ -27,21 +27,6 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
         templateUrl:'/template/chatEditor.html'
     };
 });
-/**
- * this directive handle start and stop socket service
- */
-angular.module('chat.editor.module').directive('chatContainer', function (dataService) {
-    return {
-        restrict:'A',
-        scope:false,
-        link:function (scope, element) {
-            dataService.connect();
-            scope.$on('$destroy', function () {
-                dataService.disconnect();
-            });
-        }
-    };
-});
 
 /**
  * module to render messages to chat board from data service
@@ -77,6 +62,16 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
             this.$apply(fn);
         }
     };
+});
+
+/**
+ * this controller handle start and stop socket service
+ */
+angular.module('chat.editor.module').controller('MainChatCtrl', function ($scope, dataService) {
+    dataService.connect();
+    $scope.$on('$destroy', function () {
+        dataService.disconnect();
+    });
 });
 
 angular.module('chat.editor.module').filter('message', function () {
