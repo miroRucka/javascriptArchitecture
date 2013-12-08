@@ -173,11 +173,22 @@ passport.deserializeUser(function (id, done) {
     });
 });
 
+
+function auth(req, res, next) {
+    if (req.isAuthenticated()) {
+        next();
+    } else {
+        res.redirect("/login");
+    }
+};
+
 /**
  * serve root
  */
 app.get('/', function (req, res) {
-    res.render('index.html');
+    auth(req, res, function(){
+        res.render('index.html');
+    });
 });
 
 /**
@@ -197,6 +208,11 @@ app.post('/login', passport.authenticate('local', {
 app.get('/login', function (req, res) {
     // render login file
     res.render('login.html');
+});
+
+app.get('/logout', function (req, res) {
+    req.logout();
+    res.redirect('/');
 });
 
 io.sockets.on('connection', function (socket) {
