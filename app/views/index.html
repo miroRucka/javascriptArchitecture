@@ -15,8 +15,12 @@
 
         <title>chat v0.2</title>
     </head>
-    <body data-spy="scroll" data-target=".bs-docs-sidebar" ng-view>
-
+    <body data-spy="scroll" data-target=".bs-docs-sidebar">
+        <ul class="nav nav-pills custom" nav>
+            <li class="active"><a href="#">Chat</a></li>
+            <li><a href="#/login">login</a></li>
+        </ul>
+        <div ng-view></div>
         <script src="js/socket.io.js"></script>
         <script src="js/angular.js"></script>
         <script src="js/angular-route.js"></script>
@@ -25,6 +29,7 @@
         <script src="js/module/data.service.js"></script>
         <script src="js/module/app.module.js"></script>
         <script src="js/module/chat.module.js"></script>
+        <script src="js/module/login.module.js"></script>
         <script src="js/jquery-2.0.3.js"></script>
     </body>
 </html>

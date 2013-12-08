@@ -10,7 +10,10 @@ textarea.custom {
     width: 392px;
 }
 
-
+.nav.custom {
+    float: right;
+    margin-right: 20px;
+}
 
 .animate.ng-enter,
 .animate.ng-leave {

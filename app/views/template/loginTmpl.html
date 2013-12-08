@@ -1,0 +1,14 @@
+<div class="container custom">
+    <span class="label label-warning">{{error.message}}</span>
+    <form role="form" ng-submit="login();" name="loginForm">
+        <div class="form-group">
+            <label for="user">Meno</label>
+            <input type="text" class="form-control" name="user" id="user" placeholder="Meno" ng-model="user" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Heslo</label>
+            <input type="password" class="form-control" name="password" id="password" placeholder="Heslo" ng-model="password" required>
+        </div>
+        <button ng-disabled="loginForm.$invalid" type="submit" class="btn btn-success">Prihlásiť</button>
+    </form>
+</div>

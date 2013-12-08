@@ -178,7 +178,7 @@ function auth(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect("/login");
+        res.send({access: false});
     }
 };
 
@@ -199,12 +199,33 @@ app.get('/api/messages/', function (req, res) {
 
 });
 
-app.post('/login', passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login'}));
+app.get('/api/s/messages/', function (req, res) {
+    auth(req, res, function () {
+        dbOperation.findAll(function (data) {
+            res.json(data);
+        });
+    })
+});
+
+app.post('/login', function (req, res, next) {
+    passport.authenticate('local', function (err, user, info) {
+        if (utils.exists(err)) {
+            return next(err);
+        }
+        if (!user) {
+            return res.send({ success: false });
+        }
+        req.logIn(user, function (err) {
+            if (utils.exists(err)) {
+                return next(err);
+            }
+            return res.send({ success: true, username: user.username });
+        });
+
+    })(req, res, next);
+});
 
 app.get('/login', function (req, res) {
-    // render login file
     res.render('login.html');
 });
 
