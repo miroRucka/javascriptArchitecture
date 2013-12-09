@@ -118,7 +118,7 @@ var dbOperation = (function () {
 var db = dbOperation.connect();
 
 /**
- * configure express server
+ * configure express server#
  */
 app.use(express.logger('dev'));
 app.use(express.cookieParser());
