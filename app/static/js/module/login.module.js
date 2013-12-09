@@ -10,7 +10,7 @@ angular.module('login.module').controller('LoginCtrl', function ($scope, dataSer
             } else {
                 $scope.error = undefined;
                 user.setUser({
-                    logged : true,
+                    logged: true,
                     name: r.data.username
                 });
             }
@@ -28,7 +28,7 @@ angular.module('login.module').controller('LoginCtrl', function ($scope, dataSer
     };
 });
 
-angular.module('login.module').factory('user', function () {
+angular.module('login.module').factory('user', function ($http, $q) {
     var _user = {
         logged: false,
         name: undefined
@@ -37,11 +37,23 @@ angular.module('login.module').factory('user', function () {
         _user.logged = false;
         _user.name = undefined;
     };
+    var _authOnServer = function () {
+        return $http({method: 'GET', url: '/auth'});
+    };
     return {
-        isLogged: function () {
-            return _user.logged;
+        isLogged: function (cb) {
+            if (_.isUndefined(_user.name)) {
+                var ok = function (data) {
+                    cb(Boolean(data.data.success));
+                };
+                var err = function () {
+                    cb(false);
+                };
+                return _authOnServer().then(ok);
+            }
+            cb(_user.logged);
         },
-        name: function() {
+        name: function () {
             return _user.name;
         },
         setUser: function (user) {

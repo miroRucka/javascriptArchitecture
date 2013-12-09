@@ -204,7 +204,20 @@ app.get('/api/s/messages/', function (req, res) {
         dbOperation.findAll(function (data) {
             res.json(data);
         });
-    })
+    });
+});
+
+/**
+ * request for client authentication
+ */
+app.get('/auth', function (req, res) {
+    auth(req, res, function () {
+        if (utils.exists(req.user)) {
+            res.send({ success: true, username: req.user.username });
+        } else {
+            res.send({access: false});
+        }
+    });
 });
 
 app.post('/login', function (req, res, next) {

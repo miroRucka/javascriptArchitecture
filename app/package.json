@@ -10,7 +10,8 @@
         "ejs": "0.8.5",
         "passport": "0.1.17",
         "passport-local": "0.1.6",
-        "bcrypt-nodejs": "0.0.3"
+        "bcrypt-nodejs": "0.0.3",
+        "underscore": "1.5.2"
     },
     "devDependencies": {
         "vows": "0.5.x",

@@ -27,9 +27,11 @@ chatApp.config(['$routeProvider',
                 templateUrl: '/template/loginTmpl.html',
             }).when('/test', {
                 controller: function (user, $location) {
-                    if (!Boolean(user.isLogged())) {
-                        $location.path('/login');
-                    }
+                    user.isLogged(function(logged){
+                        if(!Boolean(logged)){
+                            $location.path('/login');
+                        }
+                    });
                 },
                 templateUrl: '/template/adminMessages.html',
             }).
