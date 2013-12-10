@@ -1,1 +1,26 @@
-<div>som tam</div>
+<div class="table-responsive custom">
+    <table class="table">
+        <tr>
+            <th>
+                čas
+            </th>
+            <th>
+                používateľ
+            </th>
+            <th>
+                správa
+            </th>
+        <tr>
+        <tr ng-repeat="item in messages">
+            <td>
+                {{item.timestamp | date:'dd.MM.yy HH:mm'}}
+            </td>
+            <td>
+                {{item.username}}
+            </td>
+            <td>
+                {{item.message | adminMessage}}
+            </td>
+        </tr>
+    </table>
+</div>

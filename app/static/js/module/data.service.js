@@ -13,6 +13,12 @@ angular.module('data.service').service('dataService', function ($http) {
             url: '/api/messages/'
         });
     };
+    var _getMessagesSecure = function () {
+        return $http({
+            method: 'GET',
+            url: '/api/s/messages/'
+        });
+    };
     var _getNewMessage = function (listener) {
         if (!_.isUndefined(_socket) && !_.isUndefined(listener)) {
             _socket.on('receiveMessage', function (data) {
@@ -58,6 +64,7 @@ angular.module('data.service').service('dataService', function ($http) {
     //public api
     return {
         getMessages: _getMessages,
+        getMessagesSecure: _getMessagesSecure,
         postMessage: _postMessage,
         connect: _connect,
         disconnect: _disconnect,
