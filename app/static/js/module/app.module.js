@@ -55,21 +55,60 @@ chatApp.config(function ($httpProvider) {
     $httpProvider.responseInterceptors.push(logsOutUserOn401);
 });
 
-chatApp.directive('nav', function (Auth) {
+chatApp.directive('nav', function (Auth, $location, $window) {
     return {
         restrict: 'A',
         scope: false,
-        controller: function($scope){
+        link: function (scope, element, attrs) {
+            var clazz = attrs.nav;
+            var path = element.find('a').attr('href');
+            scope.location = $location;
+            scope.$watch('location.path()', function (newPath) {
+                if (path === "#" + newPath) {
+                    element.addClass(clazz);
+                } else {
+                    element.removeClass(clazz);
+                }
+            });
+            scope.$on('$destroy', function () {
+                element.removeClass(clazz);
+            });
+        }
+    }
+});
+
+chatApp.directive('navBar', function (Auth) {
+    return {
+        restrict: 'A',
+        scope: false,
+        controller: function ($scope) {
             $scope.isLogged;
-            Auth.isLogged(function(logged){
+            $scope.logout = function(){
+                Auth.logout();
+            };
+            Auth.isLogged(function (logged) {
                 $scope.isLogged = Boolean(logged);
             });
-        },
-        link: function (scope, elm) {
-            elm.find('a').bind('click', function (e) {
-                elm.find('li').removeClass('active');
-                $(e.target).parent().addClass('active');
+            Auth.pushListener({
+                id: 'nav',
+                action: function (logged) {
+                    $scope.isLogged = logged;
+                    $scope.safeApply();
+                }
             });
+            $scope.$on('$destroy', function () {
+                Auth.removeListener('nav');
+            });
+            $scope.safeApply = function (fn) {
+                var phase = this.$root.$$phase;
+                if (phase == '$apply' || phase == '$digest') {
+                    if (fn && ( typeof (fn) === 'function')) {
+                        fn();
+                    }
+                } else {
+                    this.$apply(fn);
+                }
+            };
         }
     }
 });

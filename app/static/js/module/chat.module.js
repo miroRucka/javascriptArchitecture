@@ -17,7 +17,6 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
             });
         },
         controller:function ($scope) {
-            console.log('editor');
             $scope.message;
             $scope.submit = function () {
                 dataService.postMessage($scope.message);
@@ -42,7 +41,6 @@ angular.module('chat.messages.module').directive('chatMessages', function () {
 });
 
 angular.module('chat.messages.module').controller('MessagesCtrl', function ($scope, dataService) {
-    console.log('message');
     $scope.messages = [];
     var ok = function (messages) {
         $scope.messages = messages.data;

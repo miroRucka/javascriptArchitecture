@@ -1,4 +1,11 @@
-<div class="table-responsive custom">
+<div class="panel panel-primary custom">
+    <!-- Default panel contents -->
+    <div class="panel-heading">Admin zone</div>
+    <div class="panel-body">
+        <p>...</p>
+    </div>
+
+    <!-- Table -->
     <table class="table">
         <tr>
             <th>
@@ -10,6 +17,8 @@
             <th>
                 správa
             </th>
+            <th>
+            </th>
         <tr>
         <tr ng-repeat="item in messages">
             <td>
@@ -20,6 +29,9 @@
             </td>
             <td>
                 {{item.message | adminMessage}}
+            </td>
+            <td>
+                <button type="button" class="close" aria-hidden="true">&times;</button>
             </td>
         </tr>
     </table>

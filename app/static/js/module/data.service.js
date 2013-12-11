@@ -36,7 +36,11 @@ angular.module('data.service').service('dataService', function ($http) {
         }
     };
     var _connect = function () {
-        _socket = io.connect(_PATH);
+        if (!_.isUndefined(_socket)) {
+            _socket.socket.connect();
+        } else{
+            _socket = io.connect(_PATH);
+        }
         return _socket;
     };
     var _getSocketInstance = function () {
@@ -48,7 +52,6 @@ angular.module('data.service').service('dataService', function ($http) {
     var _disconnect = function () {
         if (!_.isUndefined(_socket)) {
             _socket.disconnect();
-            _socket = undefined;
         }
     };
     var _login = function (user, password) {
@@ -60,7 +63,12 @@ angular.module('data.service').service('dataService', function ($http) {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         });
     };
-
+    var _logout = function(){
+        return $http({
+            method: 'GET',
+            url: '/logout/'
+        });
+    };
     //public api
     return {
         getMessages: _getMessages,
@@ -70,6 +78,7 @@ angular.module('data.service').service('dataService', function ($http) {
         disconnect: _disconnect,
         socketInstance: _getSocketInstance,
         getNewMessage: _getNewMessage,
-        login: _login
+        login: _login,
+        logout: _logout
     };
 });

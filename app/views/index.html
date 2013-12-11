@@ -8,17 +8,18 @@
 
         <link href="css/bootstrap.css" rel="stylesheet">
         <link href="css/bootstrap-responsive.css" rel="stylesheet">
-        <link href="css/docs.css" rel="stylesheet">
         <link href="css/custom.css" rel="stylesheet">
 
         <link rel="shortcut icon" type="image/ico" href="favicon.ico">
 
         <title>chat v0.2</title>
     </head>
-    <body data-spy="scroll" data-target=".bs-docs-sidebar">
-        <ul class="nav nav-pills custom" nav>
-            <li class="active"><a href="#">Chat</a></li>
-            <li ng-hide="isLogged"><a href="#/login">login</a></li>
+    <body style="" data-twttr-rendered="true">
+        <ul class="nav nav-pills custom" nav-bar>
+            <li nav="active"><a href="#/">Chat</a></li>
+            <li ng-hide="isLogged" nav="active"><a href="#/login">login</a></li>
+            <li ng-show="isLogged" nav="active"><a href="#/admin">admin</a></li>
+            <li ng-show="isLogged" nav="active" ng-click="logout();"><a href="#/logout">logout</a></li>
         </ul>
         <div ng-view></div>
         <script src="js/socket.io.js"></script>

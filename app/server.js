@@ -244,13 +244,17 @@ app.get('/login', function (req, res) {
 
 app.get('/logout', function (req, res) {
     req.logout();
-    res.redirect('/');
+    res.end();
 });
 
 io.sockets.on('connection', function (socket) {
+    console.log('client connected!')
     socket.on('postMessage', function (data) {
         var msg = {username: 'Admin', message: data.message, timestamp: new Date()};
         dbOperation.save(msg);
         io.sockets.emit('receiveMessage', msg);
+    });
+    socket.on('disconnect', function() {
+        console.log('Got disconnect!');
     });
 });
