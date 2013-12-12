@@ -69,6 +69,13 @@ angular.module('data.service').service('dataService', function ($http) {
             url: '/logout/'
         });
     };
+    var _deleteMessage = function(id){
+        if (!_.isUndefined(_socket)) {
+            _socket.emit('deleteMessage', { id: id });
+        } else {
+            console.error('socket is not defined!');
+        }
+    };
     //public api
     return {
         getMessages: _getMessages,
@@ -79,6 +86,7 @@ angular.module('data.service').service('dataService', function ($http) {
         socketInstance: _getSocketInstance,
         getNewMessage: _getNewMessage,
         login: _login,
-        logout: _logout
+        logout: _logout,
+        deleteMessage: _deleteMessage
     };
 });

@@ -31,7 +31,7 @@
                 {{item.message | adminMessage}}
             </td>
             <td>
-                <button type="button" class="close" aria-hidden="true">&times;</button>
+                <button type="button" class="close" aria-hidden="true" ng-click="deleteMessage(item._id);">&times;</button>
             </td>
         </tr>
     </table>

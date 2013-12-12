@@ -100,9 +100,12 @@ var dbOperation = (function () {
 
     var _saveUser = function (user) {
         new Users(user).save(function (err, user) {
-            console.log(user)
-            console.log(err);
         });
+    };
+
+    var _deleteChatMessage = function (id) {
+        var query = Chat.remove({_id: id.id});
+        query.exec();
     };
 
     return {
@@ -111,7 +114,8 @@ var dbOperation = (function () {
         findAll: _findAll,
         findUser: _findUser,
         findUserById: _findUserById,
-        saveUser: _saveUser
+        saveUser: _saveUser,
+        deleteMessage: _deleteChatMessage
     }
 })();
 
@@ -247,14 +251,19 @@ app.get('/logout', function (req, res) {
     res.end();
 });
 
-io.sockets.on('connection', function (socket) {
-    console.log('client connected!')
-    socket.on('postMessage', function (data) {
-        var msg = {username: 'Admin', message: data.message, timestamp: new Date()};
-        dbOperation.save(msg);
-        io.sockets.emit('receiveMessage', msg);
+//this should be a separate module for socket operation as post recieving message
+(function socket(db) {
+    var conected = [];
+    io.sockets.on('connection', function (socket) {
+        socket.on('postMessage', function (data) {
+            var msg = {username: 'Admin', message: data.message, timestamp: new Date()};
+            db.save(msg);
+            io.sockets.emit('receiveMessage', msg);
+        });
+        socket.on('deleteMessage', function (id) {
+            db.deleteMessage(id);
+        });
+        socket.on('disconnect', function () {
+        });
     });
-    socket.on('disconnect', function() {
-        console.log('Got disconnect!');
-    });
-});
+})(dbOperation);
