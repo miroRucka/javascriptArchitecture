@@ -4,6 +4,7 @@
 
 textarea.custom {
     width: 398px;
+    resize:vertical;
 }
 
 .well.custom {
@@ -17,6 +18,10 @@ textarea.custom {
 
 .custom th {
     width: 33%;
+}
+
+.alert-warning.custom {
+    width: 361px;
 }
 
 .animate.ng-enter,

@@ -42,12 +42,24 @@ angular.module('chat.messages.module').directive('chatMessages', function () {
 
 angular.module('chat.messages.module').controller('MessagesCtrl', function ($scope, dataService) {
     $scope.messages = [];
+    $scope.adminMessage = 'test';
+    var _removeMessage = function(id){
+        _.each($scope.messages, function(message, index){
+            if(message._id === id){
+                $scope.messages.splice(index, 1);
+            }
+        });
+    };
     var ok = function (messages) {
         $scope.messages = messages.data;
     };
     dataService.getMessages().then(ok);
     dataService.getNewMessage(function (data) {
         $scope.messages.push(data);
+        $scope.safeApply();
+    });
+    dataService.deleteMessageListener(function(data){
+        _removeMessage(data._id);
         $scope.safeApply();
     });
     $scope.safeApply = function (fn) {

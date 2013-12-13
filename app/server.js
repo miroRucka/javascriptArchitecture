@@ -104,7 +104,7 @@ var dbOperation = (function () {
     };
 
     var _deleteChatMessage = function (id) {
-        var query = Chat.remove({_id: id.id});
+        var query = Chat.remove({_id: id});
         query.exec();
     };
 
@@ -224,6 +224,14 @@ app.get('/auth', function (req, res) {
     });
 });
 
+app.delete('/api/message/:id', function (req, res){
+    auth(req, res, function () {
+        dbOperation.deleteMessage(req.params.id);
+        res.end();
+        io.sockets.emit ('deleteMessage', {_id: req.params.id});
+    });
+});
+
 app.post('/login', function (req, res, next) {
     passport.authenticate('local', function (err, user, info) {
         if (utils.exists(err)) {
@@ -259,9 +267,6 @@ app.get('/logout', function (req, res) {
             var msg = {username: 'Admin', message: data.message, timestamp: new Date()};
             db.save(msg);
             io.sockets.emit('receiveMessage', msg);
-        });
-        socket.on('deleteMessage', function (id) {
-            db.deleteMessage(id);
         });
         socket.on('disconnect', function () {
         });

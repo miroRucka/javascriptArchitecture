@@ -38,7 +38,7 @@ angular.module('data.service').service('dataService', function ($http) {
     var _connect = function () {
         if (!_.isUndefined(_socket)) {
             _socket.socket.connect();
-        } else{
+        } else {
             _socket = io.connect(_PATH);
         }
         return _socket;
@@ -63,15 +63,23 @@ angular.module('data.service').service('dataService', function ($http) {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         });
     };
-    var _logout = function(){
+    var _logout = function () {
         return $http({
             method: 'GET',
             url: '/logout/'
         });
     };
-    var _deleteMessage = function(id){
+    var _deleteMessage = function (id) {
+        return $http({
+            method: 'DELETE',
+            url: '/api/message/' + id
+        });
+    };
+    var _deleteMessageListener = function (listener) {
         if (!_.isUndefined(_socket)) {
-            _socket.emit('deleteMessage', { id: id });
+            _socket.on('deleteMessage', function (data) {
+                listener(data);
+            });
         } else {
             console.error('socket is not defined!');
         }
@@ -87,6 +95,7 @@ angular.module('data.service').service('dataService', function ($http) {
         getNewMessage: _getNewMessage,
         login: _login,
         logout: _logout,
-        deleteMessage: _deleteMessage
+        deleteMessage: _deleteMessage,
+        deleteMessageListener: _deleteMessageListener
     };
 });

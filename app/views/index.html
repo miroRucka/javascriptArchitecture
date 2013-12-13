@@ -15,12 +15,16 @@
         <title>chat v0.3</title>
     </head>
     <body style="" data-twttr-rendered="true">
-        <ul class="nav nav-pills custom" nav-bar>
-            <li nav="active"><a href="#/">Chat</a></li>
-            <li ng-hide="isLogged" nav="active"><a href="#/login">login</a></li>
-            <li ng-show="isLogged" nav="active"><a href="#/admin">admin</a></li>
-            <li ng-show="isLogged" nav="active" ng-click="logout();"><a href="#/logout">logout</a></li>
-        </ul>
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container">
+                <ul class="nav navbar-nav" nav-bar>
+                    <li nav="active"><a href="#/">Chat</a></li>
+                    <li ng-hide="isLogged" nav="active"><a href="#/login">login</a></li>
+                    <li ng-show="isLogged" nav="active"><a href="#/admin">admin</a></li>
+                    <li ng-show="isLogged" nav="active" ng-click="logout();"><a href="#/logout">logout</a></li>
+                </ul>
+            </div>
+        </nav>
         <div ng-view></div>
         <script src="js/socket.io.js"></script>
         <script src="js/angular.js"></script>
