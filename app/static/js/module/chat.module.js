@@ -4,9 +4,9 @@
 angular.module('chat.editor.module', []);
 angular.module('chat.editor.module').directive('chatEditor', function (dataService) {
     return {
-        restrict:'E,A',
-        scope:{},
-        link:function (scope, element) {
+        restrict: 'E,A',
+        scope: {},
+        link: function (scope, element) {
             element.find('textarea').bind('keydown', function (e) {
                 if (e.keyCode == 13) {
                     e.preventDefault();
@@ -16,14 +16,14 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
                 }
             });
         },
-        controller:function ($scope) {
+        controller: function ($scope) {
             $scope.message;
             $scope.submit = function () {
                 dataService.postMessage($scope.message);
                 $scope.message = undefined;
             }
         },
-        templateUrl:'/template/chatEditor.html'
+        templateUrl: '/template/chatEditor.html'
     };
 });
 
@@ -33,20 +33,26 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
 angular.module('chat.messages.module', []);
 angular.module('chat.messages.module').directive('chatMessages', function () {
     return {
-        restrict:'E,A',
-        scope:{},
-        controller:'MessagesCtrl',
-        templateUrl:'/template/messages.html'
+        restrict: 'E,A',
+        scope: {},
+        controller: 'MessagesCtrl',
+        templateUrl: '/template/messages.html'
     };
 });
 
-angular.module('chat.messages.module').controller('MessagesCtrl', function ($scope, dataService) {
+angular.module('chat.messages.module').controller('MessagesCtrl', function ($scope, $timeout, dataService) {
+    var DEFAULT_ADMIN_MESSAGE = "Administrátor vymazal správu z ";
+    var LIMIT = 10;
     $scope.messages = [];
-    $scope.adminMessage = 'test';
-    var _removeMessage = function(id){
-        _.each($scope.messages, function(message, index){
-            if(message._id === id){
+    $scope.adminMessage = undefined;
+    var _removeMessage = function (id) {
+        _.each($scope.messages, function (message, index) {
+            if (message._id === id) {
                 $scope.messages.splice(index, 1);
+                $scope.adminMessage = {
+                    text: DEFAULT_ADMIN_MESSAGE,
+                    time: message.timestamp
+                };
             }
         });
     };
@@ -55,12 +61,22 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
     };
     dataService.getMessages().then(ok);
     dataService.getNewMessage(function (data) {
-        $scope.messages.push(data);
+        $scope.messages.unshift(data);
+        if($scope.messages.length > LIMIT){
+            $scope.messages.pop();
+        }
         $scope.safeApply();
     });
-    dataService.deleteMessageListener(function(data){
+    dataService.deleteMessageListener(function (data) {
         _removeMessage(data._id);
         $scope.safeApply();
+    });
+    var unbind = $scope.$watch("adminMessage", function (message) {
+        if (!_.isUndefined(message)) {
+            $timeout(function () {
+                $scope.adminMessage = undefined;
+            }, 5000);
+        }
     });
     $scope.safeApply = function (fn) {
         var phase = this.$root.$$phase;
@@ -72,6 +88,9 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
             this.$apply(fn);
         }
     };
+    $scope.$on('$destroy', function () {
+        unbind();
+    });
 });
 
 /**
@@ -91,6 +110,5 @@ angular.module('chat.editor.module').filter('message', function () {
         } else {
             return items;
         }
-
     };
 });

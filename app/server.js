@@ -78,8 +78,14 @@ var dbOperation = (function () {
         });
     };
 
-    var _findAll = function (cb, err) {
-        Chat.find(function (err, chats) {
+    /**
+     * @param cb - callback it will be call after operation with result of select
+     * @param limit - limit is count of messages in result, if it is undefined then method is finding all messages
+     * @private
+     * find chat messages -> order by timestamp newest will be first
+     */
+    var _findMessages = function (cb, limit) {
+        Chat.find().limit(_.isUndefined(limit) ? 0 : limit).sort({timestamp:-1}).exec(function (err, chats) {
             cb(chats);
         });
     };
@@ -111,7 +117,7 @@ var dbOperation = (function () {
     return {
         connect: _connect,
         save: _saveMessage,
-        findAll: _findAll,
+        findMessages: _findMessages,
         findUser: _findUser,
         findUserById: _findUserById,
         saveUser: _saveUser,
@@ -197,17 +203,17 @@ app.get('/', function (req, res) {
  * rest API for list of chat messages
  */
 app.get('/api/messages/', function (req, res) {
-    dbOperation.findAll(function (data) {
+    dbOperation.findMessages(function (data) {
         res.json(data);
-    });
+    }, 10);
 
 });
 
 app.get('/api/s/messages/', function (req, res) {
     auth(req, res, function () {
-        dbOperation.findAll(function (data) {
+        dbOperation.findMessages(function (data) {
             res.json(data);
-        });
+        }, undefined);
     });
 });
 

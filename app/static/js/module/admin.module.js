@@ -11,7 +11,7 @@ angular.module('admin.module').controller('AdminCtrl', function ($scope, dataSer
     var ok = function (messages) {
         $scope.messages = messages.data;
     };
-    dataService.getMessages().then(ok);
+    dataService.getMessagesSecure().then(ok);
     $scope.deleteMessage = function(id){
         dataService.deleteMessage(id);
     };
