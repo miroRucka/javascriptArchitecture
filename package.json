@@ -1,8 +1,12 @@
 {
     "name": "javascriptArchitecture",
-    "description": "test project with AngularJS node.js and mongoDB",
+    "description": "Chat web application. Project with AngularJS node.js and mongoDB",
     "author": "Miroslav Rúčka",
     "version": "0.0.3",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/miroRucka/javascriptArchitecture.git"
+    },
     "dependencies": {
         "express": "3.4.5",
         "mongoose": "3.8.1",
