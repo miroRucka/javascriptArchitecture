@@ -1,6 +1,5 @@
 var express = require('express');
 var mongoose = require('mongoose');
-var config = require('./config');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
@@ -10,7 +9,7 @@ var _ = require('underscore');
 var LocalStrategy = require('passport-local').Strategy;
 var SALT_WORK_FACTOR = 10;
 
-server.listen(config.port);
+server.listen(process.env.VMC_APP_PORT || 1337);
 
 var utils = (function () {
     var _exists = function (input) {
@@ -69,8 +68,36 @@ var dbOperation = (function () {
 
     var Users = mongoose.model('Users', localUserSchema);
 
+    var _getMongoConfig = function () {
+        if (process.env.VCAP_SERVICES) {
+            var env = JSON.parse(process.env.VCAP_SERVICES);
+            return env['mongodb-1.8'][0]['credentials'];
+        }
+        return {
+            "hostname": "localhost",
+            "port": 27017,
+            "username": "",
+            "password": "",
+            "name": "",
+            "db": "chat"
+        }
+    };
+
+    var _mongoUrl = function () {
+        var obj = _getMongoConfig();
+        obj.hostname = (obj.hostname || 'localhost');
+        obj.port = (obj.port || 27017);
+        obj.db = (obj.db || 'test');
+        if (obj.username && obj.password) {
+            return "mongodb://" + obj.username + ":" + obj.password + "@" + obj.hostname + ":" + obj.port + "/" + obj.db;
+        }
+        else {
+            return "mongodb://" + obj.hostname + ":" + obj.port + "/" + obj.db;
+        }
+    };
+
     var _connect = function () {
-        return mongoose.connect(config.dbUrl);
+        return mongoose.connect(_mongoUrl());
     };
 
     var _saveMessage = function (msg) {
@@ -85,7 +112,7 @@ var dbOperation = (function () {
      * find chat messages -> order by timestamp newest will be first
      */
     var _findMessages = function (cb, limit) {
-        Chat.find().limit(_.isUndefined(limit) ? 0 : limit).sort({timestamp:-1}).exec(function (err, chats) {
+        Chat.find().limit(_.isUndefined(limit) ? 0 : limit).sort({timestamp: -1}).exec(function (err, chats) {
             cb(chats);
         });
     };
@@ -126,6 +153,8 @@ var dbOperation = (function () {
 })();
 
 var db = dbOperation.connect();
+
+//dbOperation.saveUser({username: 'miro', password:'a'});
 
 /**
  * configure express server#
@@ -230,11 +259,11 @@ app.get('/auth', function (req, res) {
     });
 });
 
-app.delete('/api/message/:id', function (req, res){
+app.delete('/api/message/:id', function (req, res) {
     auth(req, res, function () {
         dbOperation.deleteMessage(req.params.id);
         res.end();
-        io.sockets.emit ('deleteMessage', {_id: req.params.id});
+        io.sockets.emit('deleteMessage', {_id: req.params.id});
     });
 });
 
