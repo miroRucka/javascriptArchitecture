@@ -25,7 +25,7 @@
                 {{item.timestamp | date:'dd.MM.yy HH:mm'}}
             </td>
             <td>
-                {{item.username}}
+                {{item.client.name}}, ip: {{item.client.ip}}
             </td>
             <td>
                 {{item.message | adminMessage}}

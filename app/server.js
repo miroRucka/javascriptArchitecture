@@ -1,4 +1,6 @@
 var express = require('express');
+var cookie = require('express/node_modules/cookie');
+var connect = require('express/node_modules/connect');
 var mongoose = require('mongoose');
 var app = express();
 var server = require('http').createServer(app);
@@ -8,8 +10,10 @@ var bcrypt = require('bcrypt-nodejs');
 var _ = require('underscore');
 var LocalStrategy = require('passport-local').Strategy;
 var SALT_WORK_FACTOR = 10;
+var MemoryStore = express.session.MemoryStore;
+var sessionStore = new MemoryStore({ reapInterval: 60000 * 10 });
 
-server.listen(process.env.VMC_APP_PORT || 1337);
+server.listen(process.env.VMC_APP_PORT || 8080);
 
 var utils = (function () {
     var _exists = function (input) {
@@ -23,7 +27,10 @@ var utils = (function () {
 var dbOperation = (function () {
 
     var chatSchema = mongoose.Schema({
-        username: String,
+        client: {
+            name: String,
+            ip: String
+        },
         message: String,
         timestamp: Date
     });
@@ -33,7 +40,8 @@ var dbOperation = (function () {
     var localUserSchema = mongoose.Schema({
         username: { type: String, required: true, index: { unique: true } },
         //actually it is the hash
-        password: { type: String, required: true }
+        password: { type: String, required: true },
+        role: { type: String, required: true }
     });
 
     localUserSchema.pre('save', function (next) {
@@ -131,8 +139,9 @@ var dbOperation = (function () {
         });
     };
 
-    var _saveUser = function (user) {
+    var _saveUser = function (user, cb) {
         new Users(user).save(function (err, user) {
+            cb(err, user);
         });
     };
 
@@ -154,8 +163,6 @@ var dbOperation = (function () {
 
 var db = dbOperation.connect();
 
-//dbOperation.saveUser({username: 'miro', password:'a'});
-
 /**
  * configure express server#
  */
@@ -163,7 +170,7 @@ app.use(express.logger('dev'));
 app.use(express.cookieParser());
 app.use(express.urlencoded())
 app.use(express.json())
-app.use(express.session({ secret: 'SECRET' }));
+app.use(express.session({ secret: 'SECRET', store: sessionStore }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/js', express.static(__dirname + '/static/js'));
@@ -213,11 +220,11 @@ passport.deserializeUser(function (id, done) {
 });
 
 
-function auth(req, res, next) {
-    if (req.isAuthenticated()) {
+function auth(req, res, next, unAuth, role) {
+    if (req.isAuthenticated() && (_.isUndefined(role) || req.user.role === role)) {
         next();
     } else {
-        res.send({access: false});
+        unAuth();
     }
 };
 
@@ -243,20 +250,32 @@ app.get('/api/s/messages/', function (req, res) {
         dbOperation.findMessages(function (data) {
             res.json(data);
         }, undefined);
-    });
+    }, function(){
+       res.send(401) ;
+    }, 'ADMIN');
 });
 
 /**
  * request for client authentication
  */
-app.get('/auth', function (req, res) {
+app.post('/auth', function (req, res) {
     auth(req, res, function () {
         if (utils.exists(req.user)) {
-            res.send({ success: true, username: req.user.username });
+            res.send({ success: true, username: req.user.username, role: req.user.role });
         } else {
             res.send({access: false});
         }
-    });
+    },function(){
+        res.send({access: false});
+    }, req.body.role);
+});
+
+app.get('/api/username', function (req, res) {
+    if(_.isUndefined(req.user)){
+        res.send({username: undefined});
+    }else{
+        res.send({username: req.user.username});
+    }
 });
 
 app.delete('/api/message/:id', function (req, res) {
@@ -273,16 +292,51 @@ app.post('/login', function (req, res, next) {
             return next(err);
         }
         if (!user) {
-            return res.send({ success: false });
+            res.send(401);
         }
         req.logIn(user, function (err) {
             if (utils.exists(err)) {
                 return next(err);
             }
-            return res.send({ success: true, username: user.username });
+            return res.send({username: user.username, role: user.role });
         });
 
     })(req, res, next);
+});
+
+app.post('/singup', function (req, res, next) {
+    var user = req.body.user;
+    var password = req.body.password;
+    var passwordRepeat = req.body.passwordRepeat;
+    if (!utils.exists(user) || !utils.exists(password) || !utils.exists(passwordRepeat)) {
+        res.send({ success: false, code: 'UNCOMPLETE_DATA' });
+    } else if (password !== passwordRepeat) {
+        res.send({ success: false, code: 'BAD_PASSWORD' });
+    } else {
+        dbOperation.saveUser({username: user, password: password, role: 'CHAT'}, function(err, user){
+            if(utils.exists(err)){
+                res.send({ success: false, code: 'ERROR', dbError: err });
+            }else if(!utils.exists(user)){
+                res.send({ success: false, code: 'ERROR', dbError: err });
+            }else{
+                passport.authenticate('local', function (err, user, info) {
+                    if (utils.exists(err)) {
+                        return next(err);
+                    }
+                    if (!user) {
+                        res.send(401);
+                    }
+                    req.logIn(user, function (err) {
+                        if (utils.exists(err)) {
+                            return next(err);
+                        }
+                        return res.send({success: true, username: user.username });
+                    });
+
+                })(req, res, next);
+            }
+        });
+    }
 });
 
 app.get('/login', function (req, res) {
@@ -294,16 +348,49 @@ app.get('/logout', function (req, res) {
     res.end();
 });
 
-//this should be a separate module for socket operation as post recieving message
+//this should be a separate module for socket operation like post and recieving message
 (function socket(db) {
-    var conected = [];
+    var _connected = [];
+    var _createClient = function (socket) {
+        return {
+            name: socket.id,
+            ip: socket.handshake.address.address
+        }
+    };
+    var _removeClient = function (name) {
+        _.forEach(_connected, function (client, index) {
+            if (name === client.name) {
+                _connected.splice(index, 1);
+            }
+        });
+    };
+    io.set('authorization', function (handshakeData, accept) {
+        if (handshakeData.headers.cookie) {
+            handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
+            handshakeData.sessionID = connect.utils.parseSignedCookie(handshakeData.cookie['connect.sid'], 'SECRET');
+            if (handshakeData.cookie['connect.sid'] == handshakeData.sessionID) {
+                return accept('Cookie is invalid.', false);
+            }
+        } else {
+            return accept('No cookie transmitted.', false);
+        }
+        accept(null, true);
+    });
     io.sockets.on('connection', function (socket) {
+        _connected.push(_createClient(socket));
+        io.sockets.emit('clientsCount', _connected);
+        sessionStore.get
         socket.on('postMessage', function (data) {
-            var msg = {username: 'Admin', message: data.message, timestamp: new Date()};
+            var msg = {client: _createClient(socket), message: data.message, timestamp: new Date()};
+            sessionStore.get(socket.handshake.sessionID, function (err, session) {
+                console.log(session);
+            });
             db.save(msg);
             io.sockets.emit('receiveMessage', msg);
         });
         socket.on('disconnect', function () {
+            _removeClient(socket.id);
+            io.sockets.emit('clientsCount', _connected);
         });
     });
 })(dbOperation);

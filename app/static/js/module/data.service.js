@@ -7,6 +7,14 @@ angular.module('data.service').service('dataService', function ($http) {
     var _PATH = '/';
     var _socket;
 
+    var _doInSocket = function (socketJob) {
+        if (!_.isUndefined(_socket)) {
+            socketJob(_socket);
+        } else {
+            console.error('socket is not defined!');
+        }
+    };
+
     var _getMessages = function () {
         return $http({
             method: 'GET',
@@ -35,6 +43,15 @@ angular.module('data.service').service('dataService', function ($http) {
             console.error('socket is not defined!');
         }
     };
+    var _getClientsCount = function (listener) {
+        _doInSocket(function (sock) {
+            if (!_.isUndefined(listener)) {
+                sock.on("clientsCount", function (data) {
+                    listener(data);
+                });
+            }
+        });
+    }
     var _connect = function () {
         if (!_.isUndefined(_socket)) {
             _socket.socket.connect();
@@ -63,6 +80,15 @@ angular.module('data.service').service('dataService', function ($http) {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         });
     };
+    var _singup = function (user, password, passwordRepeat) {
+        var p = $.param({user: user, password: password, passwordRepeat: passwordRepeat});
+        return $http({
+            method: 'POST',
+            url: '/singup',
+            data: p,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+        });
+    };
     var _logout = function () {
         return $http({
             method: 'GET',
@@ -84,6 +110,12 @@ angular.module('data.service').service('dataService', function ($http) {
             console.error('socket is not defined!');
         }
     };
+    var _username = function () {
+        return $http({
+            method: 'GET',
+            url: 'api/username'
+        });
+    };
     //public api
     return {
         getMessages: _getMessages,
@@ -93,9 +125,12 @@ angular.module('data.service').service('dataService', function ($http) {
         disconnect: _disconnect,
         socketInstance: _getSocketInstance,
         getNewMessage: _getNewMessage,
+        getClientsCount: _getClientsCount,
         login: _login,
+        singup: _singup,
         logout: _logout,
         deleteMessage: _deleteMessage,
-        deleteMessageListener: _deleteMessageListener
+        deleteMessageListener: _deleteMessageListener,
+        username: _username
     };
 });

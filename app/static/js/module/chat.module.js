@@ -18,10 +18,29 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
         },
         controller: function ($scope) {
             $scope.message;
+            $scope.clientsCount = 0;
+            $scope.username;
+            dataService.username().then(function(r){
+                $scope.username = r.data.username
+            });
+            dataService.getClientsCount(function(data){
+                $scope.clientsCount = data;
+                $scope.safeApply();
+            });
             $scope.submit = function () {
                 dataService.postMessage($scope.message);
                 $scope.message = undefined;
-            }
+            };
+            $scope.safeApply = function (fn) {
+                var phase = this.$root.$$phase;
+                if (phase == '$apply' || phase == '$digest') {
+                    if (fn && ( typeof (fn) === 'function')) {
+                        fn();
+                    }
+                } else {
+                    this.$apply(fn);
+                }
+            };
         },
         templateUrl: '/template/chatEditor.html'
     };

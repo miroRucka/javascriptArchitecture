@@ -1,4 +1,4 @@
-var chatApp = angular.module('chat-app', ['ngAnimate', 'ngRoute', 'data.service', 'chat.editor.module', 'chat.messages.module', 'login.module', 'admin.module']);
+var chatApp = angular.module('chat-app', ['ngAnimate', 'ngRoute', 'data.service', 'chat.editor.module', 'chat.messages.module', 'login.module','singup.module', 'admin.module']);
 
 chatApp.run(function ($rootScope, $location, Auth) {
 
@@ -25,9 +25,32 @@ chatApp.run(function ($rootScope, $location, Auth) {
     });
 });
 
+/**
+ * configures application routes
+ */
+chatApp.config(function ($routeProvider) {
+    $routeProvider.
+        when('/', {
+            controller: 'MainChatCtrl',
+            templateUrl: '/template/chatTmpl.html'
+        }).when('/login', {
+            controller: 'LoginCtrl',
+            templateUrl: '/template/loginTmpl.html'
+        }).when('/admin', {
+            controller: 'AdminCtrl',
+            templateUrl: '/template/adminMessages.html'
+        }).when('/singup', {
+            controller: 'SingUpCtrl',
+            templateUrl: '/template/singupTmpl.html'
+        }).
+        otherwise({
+            redirectTo: '/'
+        });
+});
+
 chatApp.config(function ($httpProvider) {
 
-    var logsOutUserOn401 = ['$q', '$location', function ($q, $location) {
+    var logsOutUserOn401 = function ($q, $location) {
         var success = function (response) {
             if (!_.isUndefined(response.data) && !_.isUndefined(response.data.access) && !Boolean(response.data.access)) {
                 $location.path('/login');
@@ -50,7 +73,7 @@ chatApp.config(function ($httpProvider) {
         return function (promise) {
             return promise.then(success, error);
         };
-    }];
+    };
 
     $httpProvider.responseInterceptors.push(logsOutUserOn401);
 });
@@ -81,18 +104,34 @@ chatApp.directive('navBar', function (Auth) {
     return {
         restrict: 'A',
         scope: false,
+        link: function(scope, elm, attr){
+            $(elm).find('li').show();
+        },
         controller: function ($scope) {
             $scope.isLogged;
-            $scope.logout = function(){
+            $scope.role;
+            var _exposeLogin = function(logged){
+                if(!Boolean(logged)){
+                    $scope.isLogged = logged;
+                    $scope.role = undefined;
+                }else{
+                    $scope.isLogged = true;
+                    $scope.role = logged.role;
+                }
+            };
+            $scope.isAdminLogged = function(){
+                return $scope.isLogged && $scope.role === 'ADMIN';
+            };
+            $scope.logout = function () {
                 Auth.logout();
             };
             Auth.isLogged(function (logged) {
-                $scope.isLogged = Boolean(logged);
-            });
+                _exposeLogin(logged);
+            }, null);
             Auth.pushListener({
                 id: 'nav',
                 action: function (logged) {
-                    $scope.isLogged = logged;
+                    _exposeLogin(logged);
                     $scope.safeApply();
                 }
             });
@@ -112,25 +151,4 @@ chatApp.directive('navBar', function (Auth) {
         }
     }
 });
-
-/**
- * configures application routes
- */
-chatApp.config(['$routeProvider',
-    function ($routeProvider) {
-        $routeProvider.
-            when('/', {
-                controller: 'MainChatCtrl',
-                templateUrl: '/template/chatTmpl.html',
-            }).when('/login', {
-                controller: 'LoginCtrl',
-                templateUrl: '/template/loginTmpl.html',
-            }).when('/admin', {
-                controller: 'AdminCtrl',
-                templateUrl: '/template/adminMessages.html',
-            }).
-            otherwise({
-                redirectTo: '/'
-            });
-    }]);
 
