@@ -1,4 +1,6 @@
 <div class="alert alert-warning custom" ng-show="adminMessage">{{adminMessage.text}}{{adminMessage.time | date:'HH:mm:ss'}}</div>
 <div class="well well-small custom animate" ng-repeat="item in messages">
-    <span class="label label-info">{{item.timestamp | date:'HH:mm:ss'}}</span>&nbsp;{{item.message}}
+    <span class="label label-info">{{item.timestamp | date:'HH:mm:ss'}}</span>
+    <span class="label label-warning">{{item.client.name | client}}</span>
+    &nbsp;{{item.message}}
 </div>

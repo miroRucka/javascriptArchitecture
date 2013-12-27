@@ -1,6 +1,10 @@
 <form id="chatForm" name="chatForm" ng-submit="submit();">
     <fieldset>
-        <legend>Chat > {{username}}</legend>
+        <legend>
+            <button class="btn btn-primary" type="button" disabled>
+                Chatujúci <span class="badge">{{clients.length}}</span>
+            </button>
+        </legend>
         <textarea rows="3" placeholder="Správa..." ng-model="message" class="custom" required></textarea>
         <button type="submit" ng-disabled="chatForm.$invalid" class="btn btn-success btn-block">Odošli</button>
     </fieldset>

@@ -1,26 +1,33 @@
-var chatApp = angular.module('chat-app', ['ngAnimate', 'ngRoute', 'data.service', 'chat.editor.module', 'chat.messages.module', 'login.module','singup.module', 'admin.module']);
+var chatApp = angular.module('chat-app', ['ngAnimate', 'ngRoute', 'data.service', 'chat.editor.module', 'chat.messages.module', 'login.module', 'singup.module', 'admin.module']);
 
 chatApp.run(function ($rootScope, $location, Auth) {
 
     // enumerate routes that need authentication
-    var routesThatDontRequireAuth = ['/admin'];
+    var routesThatDontRequireAuth = [
+        {route: '/admin', role: 'ADMIN'}
+    ];
 
     // check if current location matches route
     var toAuth = function (route) {
         return _.find(routesThatDontRequireAuth,
             function (toAuthRoutes) {
-                return _.str.startsWith(route, toAuthRoutes);
+                return _.str.startsWith(route, toAuthRoutes.route);
             });
     };
 
     $rootScope.$on('$routeChangeStart', function (event, next, current) {
         // if route requires auth and user is not logged in
-        if (toAuth($location.url())) {
+        var authRoute = toAuth($location.url());
+        if (authRoute) {
             Auth.isLogged(function (logged) {
-                if (!Boolean(logged)) {
-                    $location.path('/login');
+                if (!Boolean(logged.access)) {
+                    if (logged.role === 'CHAT') {
+                        $location.path('/chat');
+                    } else {
+                        $location.path('/login');
+                    }
                 }
-            });
+            }, authRoute.role);
         }
     });
 });
@@ -52,10 +59,6 @@ chatApp.config(function ($httpProvider) {
 
     var logsOutUserOn401 = function ($q, $location) {
         var success = function (response) {
-            if (!_.isUndefined(response.data) && !_.isUndefined(response.data.access) && !Boolean(response.data.access)) {
-                $location.path('/login');
-                return $q.reject(response);
-            }
             return response;
         };
 
@@ -104,22 +107,25 @@ chatApp.directive('navBar', function (Auth) {
     return {
         restrict: 'A',
         scope: false,
-        link: function(scope, elm, attr){
+        link: function (scope, elm, attr) {
             $(elm).find('li').show();
         },
         controller: function ($scope) {
             $scope.isLogged;
             $scope.role;
-            var _exposeLogin = function(logged){
-                if(!Boolean(logged)){
-                    $scope.isLogged = logged;
+            $scope.username;
+            var _exposeLogin = function (logged) {
+                if (_.isUndefined(logged.username)) {
+                    $scope.isLogged = false;
                     $scope.role = undefined;
-                }else{
+                    $scope.username = undefined;
+                } else {
                     $scope.isLogged = true;
                     $scope.role = logged.role;
+                    $scope.username = logged.username;
                 }
             };
-            $scope.isAdminLogged = function(){
+            $scope.isAdminLogged = function () {
                 return $scope.isLogged && $scope.role === 'ADMIN';
             };
             $scope.logout = function () {
@@ -127,7 +133,7 @@ chatApp.directive('navBar', function (Auth) {
             };
             Auth.isLogged(function (logged) {
                 _exposeLogin(logged);
-            }, null);
+            });
             Auth.pushListener({
                 id: 'nav',
                 action: function (logged) {
@@ -150,5 +156,17 @@ chatApp.directive('navBar', function (Auth) {
             };
         }
     }
+});
+
+chatApp.directive('preventDefault', function () {
+    return {
+        restrict: 'A',
+        scope: false,
+        link: function (scope, elem) {
+            elem.on('click', function (e) {
+                e.preventDefault();
+            });
+        }
+    };
 });
 

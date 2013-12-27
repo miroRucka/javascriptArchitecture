@@ -54,6 +54,7 @@ angular.module('data.service').service('dataService', function ($http) {
     }
     var _connect = function () {
         if (!_.isUndefined(_socket)) {
+            console.log('is <>: ', _socket.socket.connected)
             _socket.socket.connect();
         } else {
             _socket = io.connect(_PATH);
@@ -110,12 +111,6 @@ angular.module('data.service').service('dataService', function ($http) {
             console.error('socket is not defined!');
         }
     };
-    var _username = function () {
-        return $http({
-            method: 'GET',
-            url: 'api/username'
-        });
-    };
     //public api
     return {
         getMessages: _getMessages,
@@ -131,6 +126,5 @@ angular.module('data.service').service('dataService', function ($http) {
         logout: _logout,
         deleteMessage: _deleteMessage,
         deleteMessageListener: _deleteMessageListener,
-        username: _username
     };
 });

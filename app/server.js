@@ -24,6 +24,28 @@ var utils = (function () {
     };
 })();
 
+var sessionOperation = (function (store) {
+    var _getUser = function(sesId, done){
+        store.get(sesId, function(err, session){
+            if(!utils.exists(err) && !_.isUndefined(session.passport) && !_.isUndefined(session.passport.user)){
+                userId = session.passport.user;
+                dbOperation.findUserById(userId, function (err, user) {
+                    if (err) {
+                        done(err);
+                    } else {
+                        done(null, user);
+                    }
+                });
+            }else {
+                done('ERR_USER_NOT_FOUND');
+            }
+        });
+    };
+    return {
+        user: _getUser
+    };
+})(sessionStore);
+
 var dbOperation = (function () {
 
     var chatSchema = mongoose.Schema({
@@ -221,10 +243,22 @@ passport.deserializeUser(function (id, done) {
 
 
 function auth(req, res, next, unAuth, role) {
-    if (req.isAuthenticated() && (_.isUndefined(role) || req.user.role === role)) {
+    if (req.isAuthenticated() && hasRole(role, req.user)) {
         next();
     } else {
         unAuth();
+    }
+};
+
+var hasRole = function (role, user) {
+    if (_.isUndefined(role)) {
+        return true;
+    } else if (_.isArray(role)) {
+        return !_.isUndefined(_.find(role, function (r) {
+            return user.role === r
+        }));
+    } else {
+        return user.role === role;
     }
 };
 
@@ -250,8 +284,8 @@ app.get('/api/s/messages/', function (req, res) {
         dbOperation.findMessages(function (data) {
             res.json(data);
         }, undefined);
-    }, function(){
-       res.send(401) ;
+    }, function () {
+        res.send(401);
     }, 'ADMIN');
 });
 
@@ -261,21 +295,17 @@ app.get('/api/s/messages/', function (req, res) {
 app.post('/auth', function (req, res) {
     auth(req, res, function () {
         if (utils.exists(req.user)) {
-            res.send({ success: true, username: req.user.username, role: req.user.role });
+            res.send({ access: true, username: req.user.username, role: req.user.role });
         } else {
-            res.send({access: false});
+            res.send({ access: false });
         }
-    },function(){
-        res.send({access: false});
+    }, function () {
+        if (utils.exists(req.user)) {
+            res.send({ access: false, username: req.user.username, role: req.user.role });
+        } else {
+            res.send({ access: false });
+        }
     }, req.body.role);
-});
-
-app.get('/api/username', function (req, res) {
-    if(_.isUndefined(req.user)){
-        res.send({username: undefined});
-    }else{
-        res.send({username: req.user.username});
-    }
 });
 
 app.delete('/api/message/:id', function (req, res) {
@@ -283,6 +313,8 @@ app.delete('/api/message/:id', function (req, res) {
         dbOperation.deleteMessage(req.params.id);
         res.end();
         io.sockets.emit('deleteMessage', {_id: req.params.id});
+    },function () {
+        res.send(401);
     });
 });
 
@@ -313,12 +345,12 @@ app.post('/singup', function (req, res, next) {
     } else if (password !== passwordRepeat) {
         res.send({ success: false, code: 'BAD_PASSWORD' });
     } else {
-        dbOperation.saveUser({username: user, password: password, role: 'CHAT'}, function(err, user){
-            if(utils.exists(err)){
+        dbOperation.saveUser({username: user, password: password, role: 'CHAT'}, function (err, user) {
+            if (utils.exists(err)) {
                 res.send({ success: false, code: 'ERROR', dbError: err });
-            }else if(!utils.exists(user)){
+            } else if (!utils.exists(user)) {
                 res.send({ success: false, code: 'ERROR', dbError: err });
-            }else{
+            } else {
                 passport.authenticate('local', function (err, user, info) {
                     if (utils.exists(err)) {
                         return next(err);
@@ -351,15 +383,16 @@ app.get('/logout', function (req, res) {
 //this should be a separate module for socket operation like post and recieving message
 (function socket(db) {
     var _connected = [];
-    var _createClient = function (socket) {
+    var _createClient = function (socket, user) {
         return {
-            name: socket.id,
-            ip: socket.handshake.address.address
+            socketId: socket.id,
+            name: !_.isUndefined(user) ? user.username : socket.id,
+            ip: !_.isUndefined(socket.handshake.address) ? socket.handshake.address.address : ''
         }
     };
-    var _removeClient = function (name) {
+    var _removeClient = function (id) {
         _.forEach(_connected, function (client, index) {
-            if (name === client.name) {
+            if (id === client.socketId) {
                 _connected.splice(index, 1);
             }
         });
@@ -377,16 +410,16 @@ app.get('/logout', function (req, res) {
         accept(null, true);
     });
     io.sockets.on('connection', function (socket) {
-        _connected.push(_createClient(socket));
-        io.sockets.emit('clientsCount', _connected);
-        sessionStore.get
+        sessionOperation.user(socket.handshake.sessionID, function(err, user){
+            _connected.push(_createClient(socket, user));
+            io.sockets.emit('clientsCount', _connected);
+        });
         socket.on('postMessage', function (data) {
-            var msg = {client: _createClient(socket), message: data.message, timestamp: new Date()};
-            sessionStore.get(socket.handshake.sessionID, function (err, session) {
-                console.log(session);
+            sessionOperation.user(socket.handshake.sessionID, function(err, user){
+                var msg = {client: _createClient(socket, user), message: data.message, timestamp: new Date()};
+                db.save(msg);
+                io.sockets.emit('receiveMessage', msg);
             });
-            db.save(msg);
-            io.sockets.emit('receiveMessage', msg);
         });
         socket.on('disconnect', function () {
             _removeClient(socket.id);

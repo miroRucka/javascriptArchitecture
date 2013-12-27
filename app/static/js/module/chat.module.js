@@ -18,13 +18,9 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
         },
         controller: function ($scope) {
             $scope.message;
-            $scope.clientsCount = 0;
-            $scope.username;
-            dataService.username().then(function(r){
-                $scope.username = r.data.username
-            });
+            $scope.clients;
             dataService.getClientsCount(function(data){
-                $scope.clientsCount = data;
+                $scope.clients = data;
                 $scope.safeApply();
             });
             $scope.submit = function () {
@@ -128,6 +124,15 @@ angular.module('chat.editor.module').filter('message', function () {
             return items.slice().reverse().slice(0, 10);
         } else {
             return items;
+        }
+    };
+});
+angular.module('chat.editor.module').filter('client', function () {
+    return function (client) {
+        if (!_.isUndefined(client) && client.length > 10) {
+            return client.substring(0,8) + '...'
+        } else {
+            return client;
         }
     };
 });

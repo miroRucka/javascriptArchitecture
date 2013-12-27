@@ -9,7 +9,8 @@ angular.module('login.module').controller('LoginCtrl', function ($scope, $locati
                 $location.path('/admin');
             } else {
                 $location.path('/chat');
-                Auth.isLogged(function(){}, 'CHAT');
+                Auth.isLogged(function () {
+                }, 'CHAT');
             }
         };
         var err = function () {
@@ -27,19 +28,19 @@ angular.module('login.module').controller('LoginCtrl', function ($scope, $locati
 angular.module('login.module').factory('Auth', function ($http, dataService) {
     var _authListeners = [];
     var _isLogged = function (cb, role) {
-        role = role || 'ADMIN'
         var ok = function (data) {
-            cb({
+            var principal = {
                 username: data.data.username,
-                role: data.data.role
-            });
-            _publish({
-                username: data.data.username,
-                role: data.data.role
-            });
+                role: data.data.role,
+                access: data.data.access
+            };
+            cb(principal);
+            _publish(principal);
         };
         var err = function () {
-            cb(false);
+            cb({
+                access: false
+            });
         };
         return _authOnServer(role).then(ok, err);
     };
@@ -56,15 +57,17 @@ angular.module('login.module').factory('Auth', function ($http, dataService) {
             }
         });
     };
-    var _publish = function (type) {
+    var _publish = function (principal) {
         _.each(_authListeners, function (listener) {
-            listener.action.call(null, type);
+            listener.action.call(null, principal);
         });
     };
     var _logout = function () {
         var promise = dataService.logout();
         promise.then(function () {
-            _publish(undefined);
+            _publish({
+                access: false
+            });
         });
     };
     return {

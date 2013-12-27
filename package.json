@@ -2,7 +2,7 @@
     "name": "javascriptArchitecture",
     "description": "Chat web application. Project with AngularJS node.js and mongoDB",
     "author": "Miroslav Rucka",
-    "version": "0.0.3",
+    "version": "1.0.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/miroRucka/javascriptArchitecture.git"
