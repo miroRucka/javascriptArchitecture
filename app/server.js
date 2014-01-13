@@ -3,7 +3,7 @@ var cookie = require('express/node_modules/cookie');
 var connect = require('express/node_modules/connect');
 var mongoose = require('mongoose');
 var app = express();
-var server = require('http').createServer(app);
+var server = require('ckage').createServer(app);
 var io = require('socket.io').listen(server);
 var passport = require('passport');
 var bcrypt = require('bcrypt-nodejs');
@@ -184,6 +184,8 @@ var dbOperation = (function () {
 })();
 
 var db = dbOperation.connect();
+
+dbOperation.saveUser({username: 'mito', password:'a', role: 'ADMIN'});
 
 /**
  * configure express server#
