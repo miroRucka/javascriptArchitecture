@@ -185,8 +185,6 @@ var dbOperation = (function () {
 
 var db = dbOperation.connect();
 
-dbOperation.saveUser({username: 'mito', password:'a', role: 'ADMIN'});
-
 /**
  * configure express server#
  */
