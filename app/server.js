@@ -3,7 +3,7 @@ var cookie = require('express/node_modules/cookie');
 var connect = require('express/node_modules/connect');
 var mongoose = require('mongoose');
 var app = express();
-var server = require('ckage').createServer(app);
+var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 var passport = require('passport');
 var bcrypt = require('bcrypt-nodejs');
@@ -13,7 +13,7 @@ var SALT_WORK_FACTOR = 10;
 var MemoryStore = express.session.MemoryStore;
 var sessionStore = new MemoryStore({ reapInterval: 60000 * 10 });
 
-server.listen(process.env.VMC_APP_PORT || 8080);
+server.listen(process.env.VMC_APP_PORT || 8081);
 
 var utils = (function () {
     var _exists = function (input) {
@@ -184,6 +184,7 @@ var dbOperation = (function () {
 })();
 
 var db = dbOperation.connect();
+
 
 /**
  * configure express server#
