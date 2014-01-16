@@ -6,14 +6,14 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 var passport = require('passport');
-var bcrypt = require('bcrypt-nodejs');
+var Cryptr = require("cryptr");
 var _ = require('underscore');
 var LocalStrategy = require('passport-local').Strategy;
-var SALT_WORK_FACTOR = 10;
+var SALT_WORK_FACTOR = 'x';
 var MemoryStore = express.session.MemoryStore;
 var sessionStore = new MemoryStore({ reapInterval: 60000 * 10 });
 
-server.listen(process.env.VMC_APP_PORT || 8081);
+server.listen(process.env.VMC_APP_PORT || 8080);
 
 var utils = (function () {
     var _exists = function (input) {
@@ -25,9 +25,9 @@ var utils = (function () {
 })();
 
 var sessionOperation = (function (store) {
-    var _getUser = function(sesId, done){
-        store.get(sesId, function(err, session){
-            if(!utils.exists(err) && !_.isUndefined(session.passport) && !_.isUndefined(session.passport.user)){
+    var _getUser = function (sesId, done) {
+        store.get(sesId, function (err, session) {
+            if (!utils.exists(err) && !_.isUndefined(session.passport) && !_.isUndefined(session.passport.user)) {
                 userId = session.passport.user;
                 dbOperation.findUserById(userId, function (err, user) {
                     if (err) {
@@ -36,7 +36,7 @@ var sessionOperation = (function (store) {
                         done(null, user);
                     }
                 });
-            }else {
+            } else {
                 done('ERR_USER_NOT_FOUND');
             }
         });
@@ -68,32 +68,15 @@ var dbOperation = (function () {
 
     localUserSchema.pre('save', function (next) {
         var user = this;
-        // only hash the password if it has been modified (or is new)
         if (!user.isModified('password')) return next();
-        // generate a salt
-        bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
-            if (utils.exists(err)) {
-                return next(err);
-            }
-            // hash the password along with our new salt
-            bcrypt.hash(user.password, salt, undefined, function (err, hash) {
-                if (utils.exists(err)) {
-                    return next(err);
-                }
-                // override the cleartext password with the hashed one
-                user.password = hash;
-                next();
-            });
-        });
+        var cryptr = new Cryptr(SALT_WORK_FACTOR);
+        user.password = cryptr.encrypt(user.password);
+        next();
     });
 
     localUserSchema.methods.comparePassword = function (candidatePassword, cb) {
-        bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
-            if (utils.exists(err)) {
-                return cb(err);
-            }
-            cb(null, isMatch);
-        });
+        var cryptr = new Cryptr(SALT_WORK_FACTOR);
+        cb(null, cryptr.decrypt(this.password) === candidatePassword);
     };
 
     var Users = mongoose.model('Users', localUserSchema);
@@ -185,6 +168,7 @@ var dbOperation = (function () {
 
 var db = dbOperation.connect();
 
+//dbOperation.saveUser({username: 'pajla', password: 'a', role: 'ADMIN'});
 
 /**
  * configure express server#
@@ -314,7 +298,7 @@ app.delete('/api/message/:id', function (req, res) {
         dbOperation.deleteMessage(req.params.id);
         res.end();
         io.sockets.emit('deleteMessage', {_id: req.params.id});
-    },function () {
+    }, function () {
         res.send(401);
     });
 });
@@ -411,12 +395,12 @@ app.get('/logout', function (req, res) {
         accept(null, true);
     });
     io.sockets.on('connection', function (socket) {
-        sessionOperation.user(socket.handshake.sessionID, function(err, user){
+        sessionOperation.user(socket.handshake.sessionID, function (err, user) {
             _connected.push(_createClient(socket, user));
             io.sockets.emit('clientsCount', _connected);
         });
         socket.on('postMessage', function (data) {
-            sessionOperation.user(socket.handshake.sessionID, function(err, user){
+            sessionOperation.user(socket.handshake.sessionID, function (err, user) {
                 var msg = {client: _createClient(socket, user), message: data.message, timestamp: new Date()};
                 db.save(msg);
                 io.sockets.emit('receiveMessage', msg);

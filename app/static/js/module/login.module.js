@@ -62,12 +62,14 @@ angular.module('login.module').factory('Auth', function ($http, dataService) {
             listener.action.call(null, principal);
         });
     };
-    var _logout = function () {
+    var _logout = function (cb) {
+        cb = cb || function(){};
         var promise = dataService.logout();
         promise.then(function () {
             _publish({
                 access: false
             });
+            cb();
         });
     };
     return {

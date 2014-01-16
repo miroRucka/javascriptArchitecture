@@ -103,7 +103,7 @@ chatApp.directive('nav', function (Auth, $location, $window) {
     }
 });
 
-chatApp.directive('navBar', function (Auth) {
+chatApp.directive('navBar', function (Auth, $location) {
     return {
         restrict: 'A',
         scope: false,
@@ -129,7 +129,9 @@ chatApp.directive('navBar', function (Auth) {
                 return $scope.isLogged && $scope.role === 'ADMIN';
             };
             $scope.logout = function () {
-                Auth.logout();
+                Auth.logout(function(){
+                    $location.path('/chat');
+                });
             };
             Auth.isLogged(function (logged) {
                 _exposeLogin(logged);

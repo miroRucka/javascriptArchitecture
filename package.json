@@ -2,7 +2,7 @@
     "name": "javascriptArchitecture",
     "description": "Chat web application. Project with AngularJS node.js and mongoDB",
     "author": "Miroslav Rucka",
-    "version": "1.0.0_raspberry_pi_version",
+    "version": "1.0.1",
     "repository": {
         "type": "git",
         "url": "https://github.com/miroRucka/javascriptArchitecture.git"
