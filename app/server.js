@@ -382,6 +382,7 @@ app.get('/logout', function (req, res) {
             }
         });
     };
+    io.set('transports',['xhr-polling']);
     io.set('authorization', function (handshakeData, accept) {
         if (handshakeData.headers.cookie) {
             handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
@@ -394,6 +395,7 @@ app.get('/logout', function (req, res) {
         }
         accept(null, true);
     });
+
     io.sockets.on('connection', function (socket) {
         sessionOperation.user(socket.handshake.sessionID, function (err, user) {
             _connected.push(_createClient(socket, user));
