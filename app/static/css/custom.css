@@ -11,7 +11,7 @@ textarea.custom {
     width: 392px;
 }
 
-.nav.custom li{
+.nav.custom li, .nav.custom button{
     display: none;
 }
 

@@ -27,7 +27,7 @@ var utils = (function () {
 var sessionOperation = (function (store) {
     var _getUser = function (sesId, done) {
         store.get(sesId, function (err, session) {
-            if (!utils.exists(err) && !_.isUndefined(session.passport) && !_.isUndefined(session.passport.user)) {
+            if (!utils.exists(err) && !_.isUndefined(session) && !_.isUndefined(session.passport) && !_.isUndefined(session.passport.user)) {
                 userId = session.passport.user;
                 dbOperation.findUserById(userId, function (err, user) {
                     if (err) {
@@ -372,7 +372,8 @@ app.get('/logout', function (req, res) {
         return {
             socketId: socket.id,
             name: !_.isUndefined(user) ? user.username : socket.id,
-            ip: !_.isUndefined(socket.handshake.address) ? socket.handshake.address.address : ''
+            ip: !_.isUndefined(socket.handshake.address) ? socket.handshake.address.address : '',
+            sessionId: !_.isUndefined(socket.handshake.sessionID) ? socket.handshake.sessionID : ''
         }
     };
     var _removeClient = function (id) {
@@ -382,7 +383,7 @@ app.get('/logout', function (req, res) {
             }
         });
     };
-    io.set('transports',['xhr-polling']);
+    io.set('transports', ['xhr-polling']);
     io.set('authorization', function (handshakeData, accept) {
         if (handshakeData.headers.cookie) {
             handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
@@ -398,7 +399,13 @@ app.get('/logout', function (req, res) {
 
     io.sockets.on('connection', function (socket) {
         sessionOperation.user(socket.handshake.sessionID, function (err, user) {
-            _connected.push(_createClient(socket, user));
+            var newClient = _createClient(socket, user);
+            _.forEach(_connected, function(client, index){
+                if(newClient.socketId === client.socketId || newClient.sessionId === client.sessionId){
+                    _connected.splice(index,1);
+                }
+            });
+            _connected.push(newClient);
             io.sockets.emit('clientsCount', _connected);
         });
         socket.on('postMessage', function (data) {

@@ -108,7 +108,7 @@ chatApp.directive('navBar', function (Auth, $location) {
         restrict: 'A',
         scope: false,
         link: function (scope, elm, attr) {
-            $(elm).find('li').show();
+            $(elm).find('li, button').show();
         },
         controller: function ($scope) {
             $scope.isLogged;
