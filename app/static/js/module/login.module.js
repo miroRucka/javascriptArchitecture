@@ -28,6 +28,7 @@ angular.module('login.module').controller('LoginCtrl', function ($scope, $locati
 angular.module('login.module').factory('Auth', function ($http, dataService) {
     var _authListeners = [];
     var _isLogged = function (cb, role) {
+        cb = cb || function(){};
         var ok = function (data) {
             var principal = {
                 username: data.data.username,

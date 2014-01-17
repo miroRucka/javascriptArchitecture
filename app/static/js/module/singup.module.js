@@ -1,5 +1,5 @@
 angular.module('singup.module', []);
-angular.module('singup.module').controller('SingUpCtrl', function ($scope, $location, dataService) {
+angular.module('singup.module').controller('SingUpCtrl', function ($scope, $location, dataService, Auth) {
     var _erroCodes = {
         BAD_NAME: 'Registrácia sa nepodarila, zlé meno.',
         BAD_PASSWORD: 'Registrácia sa nepodarila, heslá nie sú rovnaké.',
@@ -15,6 +15,7 @@ angular.module('singup.module').controller('SingUpCtrl', function ($scope, $loca
             }else {
                 $scope.error = undefined;
                 $location.path('/chat');
+                Auth.isLogged();
             }
         };
         var err = function () {

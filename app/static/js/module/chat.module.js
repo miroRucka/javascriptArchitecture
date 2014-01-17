@@ -19,7 +19,7 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
         controller: function ($scope) {
             $scope.message;
             $scope.clients;
-            dataService.getClientsCount(function(data){
+            dataService.getClientsCount(function (data) {
                 $scope.clients = data;
                 $scope.safeApply();
             });
@@ -55,6 +55,29 @@ angular.module('chat.messages.module').directive('chatMessages', function () {
     };
 });
 
+angular.module('chat.messages.module').directive('chatBlockUi', function () {
+    return {
+        restrict: 'E,A',
+        scope: false,
+        controller: 'MainChatCtrl',
+        link: function (scope) {
+            $.blockUI({ css: {
+                border: 'none',
+                padding: '15px',
+                backgroundColor: '#000',
+                '-webkit-border-radius': '10px',
+                '-moz-border-radius': '10px',
+                opacity: .5,
+                color: '#fff',
+                'font-size': 13
+            } });
+            scope.socket.on('connect', function () {
+                $.unblockUI();
+            });
+        }
+    };
+});
+
 angular.module('chat.messages.module').controller('MessagesCtrl', function ($scope, $timeout, dataService) {
     var DEFAULT_ADMIN_MESSAGE = "Administrátor vymazal správu z ";
     var LIMIT = 10;
@@ -77,7 +100,7 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
     dataService.getMessages().then(ok);
     dataService.getNewMessage(function (data) {
         $scope.messages.unshift(data);
-        if($scope.messages.length > LIMIT){
+        if ($scope.messages.length > LIMIT) {
             $scope.messages.pop();
         }
         $scope.safeApply();
@@ -112,7 +135,7 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
  * this controller handle start and stop socket service
  */
 angular.module('chat.editor.module').controller('MainChatCtrl', function ($scope, dataService) {
-    dataService.connect();
+    $scope.socket = dataService.connect();
     $scope.$on('$destroy', function () {
         dataService.disconnect();
     });
@@ -130,7 +153,7 @@ angular.module('chat.editor.module').filter('message', function () {
 angular.module('chat.editor.module').filter('client', function () {
     return function (client) {
         if (!_.isUndefined(client) && client.length > 10) {
-            return client.substring(0,8) + '...'
+            return client.substring(0, 8) + '...'
         } else {
             return client;
         }
