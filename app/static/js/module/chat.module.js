@@ -71,9 +71,7 @@ angular.module('chat.messages.module').directive('chatBlockUi', function () {
                 color: '#fff',
                 'font-size': 13
             } });
-            scope.socket.on('connect', function () {
-                $.unblockUI();
-            });
+
         }
     };
 });

@@ -4,7 +4,7 @@
 angular.module('data.service', []);
 angular.module('data.service').service('dataService', function ($http) {
 
-    var _PATH = '/';
+    var _PATH = '/echo';
     var _socket;
 
     var _doInSocket = function (socketJob) {
@@ -28,36 +28,18 @@ angular.module('data.service').service('dataService', function ($http) {
         });
     };
     var _getNewMessage = function (listener) {
-        if (!_.isUndefined(_socket) && !_.isUndefined(listener)) {
-            _socket.on('receiveMessage', function (data) {
-                listener(data);
-            });
-        } else {
-            console.error('socket or listener is not defined!');
-        }
+
     };
     var _postMessage = function (message) {
-        if (!_.isUndefined(_socket)) {
-            _socket.emit('postMessage', { message: message });
-        } else {
-            console.error('socket is not defined!');
-        }
+
     };
     var _getClientsCount = function (listener) {
-        _doInSocket(function (sock) {
-            if (!_.isUndefined(listener)) {
-                sock.on("clientsCount", function (data) {
-                    listener(data);
-                });
-            }
-        });
+
     }
     var _connect = function () {
         if (!_.isUndefined(_socket)) {
-            console.log('is <>: ', _socket.socket.connected)
-            _socket.socket.connect();
         } else {
-            _socket = io.connect(_PATH);
+            _socket = new SockJS(_PATH);
         }
         return _socket;
     };
@@ -68,9 +50,7 @@ angular.module('data.service').service('dataService', function ($http) {
         return _socket;
     };
     var _disconnect = function () {
-        if (!_.isUndefined(_socket)) {
-            _socket.disconnect();
-        }
+
     };
     var _login = function (user, password) {
         var p = $.param({user: user, password: password});
@@ -104,9 +84,7 @@ angular.module('data.service').service('dataService', function ($http) {
     };
     var _deleteMessageListener = function (listener) {
         if (!_.isUndefined(_socket)) {
-            _socket.on('deleteMessage', function (data) {
-                listener(data);
-            });
+
         } else {
             console.error('socket is not defined!');
         }

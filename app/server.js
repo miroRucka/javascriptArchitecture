@@ -3,8 +3,9 @@ var cookie = require('express/node_modules/cookie');
 var connect = require('express/node_modules/connect');
 var mongoose = require('mongoose');
 var app = express();
-var server = require('http').createServer(app);
-var io = require('socket.io').listen(server);
+var http = require('http');
+var server = http.createServer(app);
+var sockjs = require('sockjs');
 var passport = require('passport');
 var Cryptr = require("cryptr");
 var _ = require('underscore');
@@ -12,6 +13,9 @@ var LocalStrategy = require('passport-local').Strategy;
 var SALT_WORK_FACTOR = 'x';
 var MemoryStore = express.session.MemoryStore;
 var sessionStore = new MemoryStore({ reapInterval: 60000 * 10 });
+var sockjs_opts = {sockjs_url: "http://cdn.sockjs.org/sockjs-0.3.min.js"};
+var sockjs_echo = sockjs.createServer(sockjs_opts);
+sockjs_echo.installHandlers(server, {prefix:'/echo'});
 
 server.listen(process.env.VMC_APP_PORT || 8080);
 
@@ -383,41 +387,10 @@ app.get('/logout', function (req, res) {
             }
         });
     };
-    io.set('transports', ['xhr-polling']);
-    io.set('authorization', function (handshakeData, accept) {
-        if (handshakeData.headers.cookie) {
-            handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
-            handshakeData.sessionID = connect.utils.parseSignedCookie(handshakeData.cookie['connect.sid'], 'SECRET');
-            if (handshakeData.cookie['connect.sid'] == handshakeData.sessionID) {
-                return accept('Cookie is invalid.', false);
-            }
-        } else {
-            return accept('No cookie transmitted.', false);
-        }
-        accept(null, true);
-    });
 
-    io.sockets.on('connection', function (socket) {
-        sessionOperation.user(socket.handshake.sessionID, function (err, user) {
-            var newClient = _createClient(socket, user);
-            _.forEach(_connected, function(client, index){
-                if(newClient.socketId === client.socketId || newClient.sessionId === client.sessionId){
-                    _connected.splice(index,1);
-                }
-            });
-            _connected.push(newClient);
-            io.sockets.emit('clientsCount', _connected);
-        });
-        socket.on('postMessage', function (data) {
-            sessionOperation.user(socket.handshake.sessionID, function (err, user) {
-                var msg = {client: _createClient(socket, user), message: data.message, timestamp: new Date()};
-                db.save(msg);
-                io.sockets.emit('receiveMessage', msg);
-            });
-        });
-        socket.on('disconnect', function () {
-            _removeClient(socket.id);
-            io.sockets.emit('clientsCount', _connected);
-        });
+
+    sockjs_echo.on('connection', function (conn) {
+        console.log('connect');
+        conn.write('test');
     });
 })(dbOperation);
