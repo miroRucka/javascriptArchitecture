@@ -15,7 +15,7 @@ var MemoryStore = express.session.MemoryStore;
 var sessionStore = new MemoryStore({ reapInterval: 60000 * 10 });
 var sockjs_opts = {sockjs_url: "http://cdn.sockjs.org/sockjs-0.3.min.js"};
 var sockjs_echo = sockjs.createServer(sockjs_opts);
-sockjs_echo.installHandlers(server, {prefix:'/echo'});
+sockjs_echo.installHandlers(server, {prefix: '/echo'});
 
 server.listen(process.env.VMC_APP_PORT || 8080);
 
@@ -301,7 +301,7 @@ app.delete('/api/message/:id', function (req, res) {
     auth(req, res, function () {
         dbOperation.deleteMessage(req.params.id);
         res.end();
-        io.sockets.emit('deleteMessage', {_id: req.params.id});
+        wsOperation.broadcast({event: 'deleteMessage', data: {_id: req.params.id}});
     }, function () {
         res.send(401);
     });
@@ -370,15 +370,18 @@ app.get('/logout', function (req, res) {
 });
 
 //this should be a separate module for socket operation like post and recieving message
-(function socket(db) {
+var ws = function ws(db) {
     var _connected = [];
-    var _createClient = function (socket, user) {
-        return {
-            socketId: socket.id,
-            name: !_.isUndefined(user) ? user.username : socket.id,
-            ip: !_.isUndefined(socket.handshake.address) ? socket.handshake.address.address : '',
-            sessionId: !_.isUndefined(socket.handshake.sessionID) ? socket.handshake.sessionID : ''
+    var _createClient = function (id, ip, conn) {
+        var client = {
+            socketId: id,
+            name: id,
+            ip: ip
+        };
+        if (!_.isUndefined(conn)) {
+            client.conn = conn;
         }
+        return client;
     };
     var _removeClient = function (id) {
         _.forEach(_connected, function (client, index) {
@@ -387,10 +390,36 @@ app.get('/logout', function (req, res) {
             }
         });
     };
-
+    var _broadcast = function (msg) {
+        _.forEach(_connected, function (client, index) {
+            if (!_.isUndefined(client.conn)) {
+                client.conn.write(JSON.stringify(msg));
+            }
+        });
+    };
 
     sockjs_echo.on('connection', function (conn) {
-        console.log('connect');
-        conn.write('test');
+        var newClient = _createClient(conn.id, conn.address.address, conn);
+        _.forEach(_connected, function (client, index) {
+            if (newClient.socketId === client.socketId) {
+                _connected.splice(index, 1);
+            }
+        });
+        _connected.push(newClient);
+        _broadcast({event: 'clientsCount', data: _connected.length});
+        conn.on('close', function() {
+            _removeClient(conn.id);
+            _broadcast({event: 'clientsCount', data: _connected.length});
+        });
+        conn.on('data', function(message) {
+            var msg = {client: _createClient(conn.id, conn.address.address), message: message, timestamp: new Date()};
+            db.save(msg);
+            _broadcast({event: 'receiveMessage', data: msg});
+        });
     });
-})(dbOperation);
+
+    return {
+        broadcast: _broadcast
+    }
+};
+var wsOperation = ws(dbOperation);

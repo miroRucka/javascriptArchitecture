@@ -55,7 +55,7 @@ angular.module('chat.messages.module').directive('chatMessages', function () {
     };
 });
 
-angular.module('chat.messages.module').directive('chatBlockUi', function () {
+angular.module('chat.messages.module').directive('chatBlockUi', function (dataService) {
     return {
         restrict: 'E,A',
         scope: false,
@@ -71,7 +71,9 @@ angular.module('chat.messages.module').directive('chatBlockUi', function () {
                 color: '#fff',
                 'font-size': 13
             } });
-
+            dataService.onConnect(function(){
+                $.unblockUI();
+            });
         }
     };
 });
@@ -132,9 +134,8 @@ angular.module('chat.messages.module').controller('MessagesCtrl', function ($sco
 /**
  * this controller handle start and stop socket service
  */
-angular.module('chat.editor.module').controller('MainChatCtrl', function ($scope, dataService, $window) {
-    dataService.disconnect();
-    $scope.socket = dataService.connect();
+angular.module('chat.editor.module').controller('MainChatCtrl', function ($scope, dataService, $timeout) {
+    dataService.connect();
     $scope.$on('$destroy', function () {
         dataService.disconnect();
     });
