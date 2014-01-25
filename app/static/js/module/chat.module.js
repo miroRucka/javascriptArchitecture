@@ -2,7 +2,7 @@
  * module for chat editor. Its responsibility is validate message and send it to io.socket
  */
 angular.module('chat.editor.module', []);
-angular.module('chat.editor.module').directive('chatEditor', function (dataService) {
+angular.module('chat.editor.module').directive('chatEditor', function (dataService, Auth) {
     return {
         restrict: 'E,A',
         scope: {},
@@ -24,8 +24,12 @@ angular.module('chat.editor.module').directive('chatEditor', function (dataServi
                 $scope.safeApply();
             });
             $scope.submit = function () {
-                dataService.postMessage($scope.message);
-                $scope.message = undefined;
+                $scope.editorDisable = true;
+                Auth.isLogged(function (logged) {
+                    dataService.postMessage($scope.message, logged.username);
+                    $scope.message = undefined;
+                    $scope.editorDisable = false;
+                });
             };
             $scope.safeApply = function (fn) {
                 var phase = this.$root.$$phase;

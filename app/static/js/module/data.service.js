@@ -43,8 +43,8 @@ angular.module('data.service').service('dataService', function ($http, $timeout)
             }
         });
     };
-    var _postMessage = function (message) {
-        _socket.send(message);
+    var _postMessage = function (message, username) {
+        _socket.send(JSON.stringify({message: message, username: username}));
     };
     var _getClientsCount = function (listener) {
         _doInSocket(function(_socket){

@@ -7,6 +7,6 @@
             </button>
         </legend>
         <textarea rows="3" placeholder="Správa..." ng-model="message" class="custom" required></textarea>
-        <button type="submit" ng-disabled="chatForm.$invalid" class="btn btn-success btn-block">Odošli</button>
+        <button type="submit" ng-disabled="chatForm.$invalid || editorDisable" class="btn btn-success btn-block">Odošli</button>
     </fieldset>
 </form>

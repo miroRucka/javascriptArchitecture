@@ -371,10 +371,10 @@ app.get('/logout', function (req, res) {
 //this should be a separate module for socket operation like post and recieving message
 var ws = function ws(db) {
     var _connected = [];
-    var _createClient = function (id, ip, conn) {
+    var _createClient = function (id, ip, conn, username) {
         var client = {
             socketId: id,
-            name: id,
+            name: !_.isUndefined(username)? username : id,
             ip: ip
         };
         if (!_.isUndefined(conn)) {
@@ -411,7 +411,8 @@ var ws = function ws(db) {
             _broadcast({event: 'clientsCount', data: _connected.length});
         });
         conn.on('data', function(message) {
-            var msg = {client: _createClient(conn.id, conn.address.address), message: message, timestamp: new Date()};
+            var data = JSON.parse(message);
+            var msg = {client: _createClient(conn.id, conn.address.address, undefined, data.username), message: data.message, timestamp: new Date()};
             db.save(msg);
             _broadcast({event: 'receiveMessage', data: msg});
         });
