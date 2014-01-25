@@ -7,6 +7,11 @@ angular.module('data.service').service('dataService', function ($http, $timeout)
     var _PATH = '/echo';
     var _socket;
 
+    /**
+     * register all events for communication with server via ws
+     * @type {{}}
+     * @private
+     */
     var _socketEvents = {};
 
     var _doInSocket = function (socketJob) {

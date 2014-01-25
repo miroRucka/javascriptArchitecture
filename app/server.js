@@ -13,8 +13,7 @@ var LocalStrategy = require('passport-local').Strategy;
 var SALT_WORK_FACTOR = 'x';
 var MemoryStore = express.session.MemoryStore;
 var sessionStore = new MemoryStore({ reapInterval: 60000 * 10 });
-var sockjs_opts = {sockjs_url: "http://cdn.sockjs.org/sockjs-0.3.min.js"};
-var sockjs_echo = sockjs.createServer(sockjs_opts);
+var sockjs_echo = sockjs.createServer();
 sockjs_echo.installHandlers(server, {prefix: '/echo'});
 
 server.listen(process.env.VMC_APP_PORT || 8080);
