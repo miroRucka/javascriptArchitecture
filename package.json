@@ -1,32 +1,35 @@
 {
-    "name": "javascriptArchitecture",
-    "description": "Chat web application. Project with AngularJS node.js and mongoDB",
-    "author": "Miroslav Rucka",
-    "version": "1.0.1",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/miroRucka/javascriptArchitecture.git"
-    },
-    "scripts": {
-      "start": "node app/server.js"
-    },
-    "dependencies": {
-        "express": "3.4.8",
-        "mongoose": "3.8.1",
-        "ejs": "0.8.5",
-        "passport": "0.1.17",
-        "passport-local": "0.1.6",
-        "cryptr": "0.0.1",
-        "underscore": "1.5.2",
-        "sockjs": "0.3.8"
-    },
-    "devDependencies": {
-        "vows": "0.5.x",
-        "mocha": "*",
-        "should": "*"
-    },
-    "keywords": [
-        "chat"
-    ],
-    "engine": "node >= 0.6.6"
+  "name": "javascriptArchitecture",
+  "description": "Chat web application. Project with AngularJS node.js and mongoDB",
+  "author": "Miroslav Rucka",
+  "version": "1.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miroRucka/javascriptArchitecture.git"
+  },
+  "scripts": {
+    "start": "node app/server.js"
+  },
+  "dependencies": {
+    "express": "3.4.8",
+    "mongoose": "3.8.1",
+    "ejs": "0.8.5",
+    "passport": "0.1.17",
+    "passport-local": "0.1.6",
+    "cryptr": "0.0.1",
+    "underscore": "1.5.2",
+    "sockjs": "0.3.8"
+  },
+  "devDependencies": {
+    "vows": "0.5.x",
+    "mocha": "*",
+    "should": "*",
+    "grunt": "~0.4.2",
+    "grunt-contrib-uglify": "0.3.2",
+    "grunt-contrib-concat": "0.3.0"
+  },
+  "keywords": [
+    "chat"
+  ],
+  "engine": "node >= 0.6.6"
 }
